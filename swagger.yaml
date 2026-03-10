@@ -1,0 +1,784 @@
+openapi: 3.0.0
+info:
+  title: Invoice Generation API 
+  description: Creates a standardised UBL Invoice from an Order Document and other User-Provided data.
+  version: 1.0.0
+
+servers:
+    # Added by API Auto Mocking Plugin
+    - description: SwaggerHub API Auto Mocking
+      url: https://virtserver.swaggerhub.com/unsw-c64/UBL_Invoice_API/1.0.0
+    - url: https://api.example.com/api/v1
+  
+tags:
+  - name: 'Account Creation and Management'
+    description: Users can register and manage their account details. Possibly add two-factor authentication as user data contains personal information. 
+  - name: 'ABN validation'
+    description: Validates user's ABN.
+  - name: 'Invoice Generation and Management' 
+    description: Standardised UBL invoice with correct formatting and contents. Parses order, applies pricing rules, calculates totals and creates UBL XML.  
+  - name: 'Validation'
+    description: Validate UBL Invoice against XSD and return results.
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    UserRegister:
+      type: object
+      required: 
+        - email
+        - password
+        - businessName
+        - abn
+      properties:
+        email:
+          type: string
+          format: email
+          example: 'testemail@business.com'
+        password: 
+          type: string
+          format: password
+          example: 'ILurvc4ts1234!'
+        businessName:
+          type: string
+          example: 'Cuddles4Cats'
+        abn:
+          type: string
+          example: '12345678911'
+
+    RegisterResponse:
+      type: object
+      required:
+        - adminId
+        - token
+      properties:
+        adminId:
+          type: string
+          example: 'yeehaw_123'
+        token:
+          type: string
+          description: JWT access token.
+          example: 'NJmKsg5oiW...'
+    
+    InvoiceId:
+      type: object
+      properties:
+        invoiceId:
+          type: integer
+          example: 12345
+    
+    UserLogin:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: 'testemail@business.com'
+        password:
+            type: string
+            format: password
+            example: 'ILurvc4ts1234!'
+
+    UserLoginResponse:
+      type: object
+      required:
+        - adminId
+        - token
+      properties:
+        adminId:
+          type: string
+          example: 'yeehaw_123'
+        token:
+          type: string
+          description: JWT access token.
+          example: 'NJmKsg5oiW...'
+
+    UserUpdate:
+      type: object
+      required: 
+        - email
+        - password
+        - businessName
+      properties:
+        email:
+          type: string
+          format: email
+          example: 'newemail@business.com'
+        password: 
+          type: string
+          format: password
+          example: 'ILurvc4ts1234!'
+        businessName:
+          type: string
+          example: 'Cuddles4Cats' 
+
+    UserDetails:
+      type: object
+      required: 
+        - email
+        - businessName
+        - abn
+      properties:
+        email:
+          type: string
+          format: email
+          example: 'newemail@business.com'
+        businessName:
+          type: string
+          example: 'Cuddles4Cats' 
+        abn:
+          type: string
+          example: '12345678911'
+
+    ErrorResponse:
+      type: object
+      required: 
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          example: 'INVALID_SOMETHING'
+        message:
+          type: string
+          example: 'error message'
+
+    InvoiceData:
+      type: object
+
+    UploadOrderContract:
+      type: object
+      required: 
+        - file
+      properties: 
+        file:
+          type: string
+          format: binary
+          description: Order contract in XML or JSON.
+
+    Names:
+      type: object
+      required: 
+        - name
+      properties: 
+        name:
+          type: string
+          example: 'Happy Girl'
+
+    OrderLines:
+      type: object
+      required:
+        - lineId
+        - itemName
+        - quantity
+        - unitCode
+        - unitPrice
+        - lineTotal
+      properties: 
+        lineId:
+          type: string
+          example: '1'
+        itemName:
+          type: string
+          example: 'Margiela Boots'
+        quantity:
+          type: number
+          example: 2
+        unitCode: 
+          type: string
+          example: 'SH'
+        unitPrice: 
+          type: number
+          format: double
+          example: 865.00
+
+    ParseOrderContract:
+      type: object
+      required:
+        - orderId
+        - buyer
+        - seller
+        - orderLines
+      properties: 
+        orderId:
+          type: string
+          example: 'OD12345'
+        orderDate:
+          type: string
+          format: date-time
+          example: '2026-02-14'
+        buyer:
+          $ref: '#/components/schemas/names'
+        seller:
+          $ref: '#/components/schemas/names'
+        paymentTerms:
+          type: string
+          example: 'Payment due within 30 days'
+        orderLines:
+          type: array
+          items:
+            $ref: '#/components/schemas/orderLines'
+
+    DraftInvoiceRequest:
+      type: object
+      required:
+        - parsedData
+      properties: 
+        parsedData:
+          $ref: '#/components/schemas/ParseOrderContract'
+
+    DraftInvoiceResponse:
+      type: object
+      required:
+        - draftInvoice
+      properties: 
+        draftInvoice:
+          $ref: '#/components/schemas/GeneratedInvoice'
+
+    InvoiceUserData:
+      type: object
+      required: 
+        - issueDate
+        - currency
+      properties: 
+        invoiceId:
+          type: string
+          example: 'INV-23453223443'
+        issueDate:
+          type: string
+          format: date
+          example: '2026-04-24'
+        dueDate:
+          type: string
+          format: date
+          example: '2026-04-24'
+        currency:
+          type: string
+          example: 'AUD'
+        paymentTerms:
+          type: string
+          example: 'Payment due within 30 days'
+    
+    CopyDataIntoInvoice:
+      type: object
+      required:
+        - orderText
+        - userData
+      properties: 
+        orderText:
+          type: string
+          example: '<Order>...</Order>'
+        userData:
+          $ref: '#/components/schemas/InvoiceUserData'
+  
+    GeneratedInvoice:
+      type: object
+      required: [invoiceId, invoiceData, invoiceXML]
+      properties:
+        invoiceId:
+          type: string
+          example: 'INV13830'
+        invoiceStatus:
+          type: string
+          example: 'draft'
+        invoiceData:
+          $ref: '#/components/schemas/InvoiceData'
+        invoiceXML:
+          type: string
+          description: generated xml string
+          example: "<Invoice xmlns='urn:oasis:names:specification:ubl:schema:xsd:Invoice-2'>...</Invoice>"
+
+    ValidationCheck:
+      type: object
+      required: 
+        - schemaValid
+        - businessRulesValid
+      properties: 
+        schemaValid:
+          type: boolean
+          example: true
+        businessRulesValid:
+          type: boolean
+          example: true 
+
+
+paths:
+  /v1/admin/auth/register:
+    post:
+      tags: 
+        - 'Account Creation and Management'
+      summary: Register a new admin user.
+      description: Registers a new admin user using email, password, business name and ABN.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegister'
+      responses: 
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterResponse'
+        '400':
+          description: Invalid email, password or business name.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalidEmail:
+                  summary: Email incorrect format, or email could already exist in database.
+                  value:
+                    code: 'INVALID_EMAIL'
+                    error: 'Email must be a valid email address.'
+                weakPassword:
+                  summary: Password too short or doesn't contain alphanumeric and symbols.
+                  value:
+                    code: 'PASSWORD_REJECTED'
+                    error: 'Password too weak. Must contain alphanumerics and symbols.'
+                invalidABN:
+                  summary: ABN less than 11 digits or already exists in database.
+                  value:
+                    code: 'INVALID_ABN'
+                    error: 'ABN must be 11 digits and unregistered in our database.'
+
+  /v1/admin/auth/login:
+    post:
+      tags: 
+        - 'Account Creation and Management'
+      summary: Logs in user.
+      description: Takes in information about an admin user to determine if they can log in to their account.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserLogin'
+      responses:
+        '200':
+          description: Login successful.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserLoginSuccess'
+        '400':
+          description: Failed to login, incorrect email or password.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /v1/admin/auth/authentication:
+    get:
+      tags:
+        - 'ABN validation'
+      summary: Verifies user's ABN.
+      description: Verifies the given ABN using ATO ABN Lookup API
+      parameters:
+        - name: abn
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "400":
+          description: Bad request if the ABN is in an invalid format
+        "404":
+          description: Not found if ABN is not recognised/registered
+        "200":
+          description: ABN is valid
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status_message:
+                    type: string
+                  valid:
+                    type: boolean
+                  business_details:
+                    type: object
+
+  /v1/admin/auth/logout:
+    post:
+      tags: 
+        - 'Account Creation and Management'
+      summary: Logs out user and invalidates Token
+      security: 
+        - BearerAuth: []
+      responses: 
+        '200':
+          description: OK - Logout successful.
+          content: 
+            application/json:
+              schema:
+                type: object
+        '401':
+          description: Token is invalid or empty
+          content:
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorResponse'
+        '500': 
+          description: Internal error (unexpected failure).
+          content:
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorResponse'
+ 
+
+  /v1/admin/user/details:
+    put:
+      tags: 
+        - 'Account Creation and Management'
+      summary: Update user details 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdate'
+      security: 
+        - BearerAuth: []
+      description: Updates user email, business name or password
+      responses: 
+        '200': 
+          description: Update successful
+          content: 
+            application/json:
+              schema:
+                type: object
+        '401':
+          description: Token is invalid or empty
+          content:
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorResponse'
+        '500': 
+          description: Internal error (unexpected failure).
+          content:
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorResponse'
+        
+    get:
+      tags: 
+        - 'Account Creation and Management'
+      summary: Get the details of an admin user.
+      security: 
+        - BearerAuth: []
+      description: Returns relevant details of loginned user
+      responses: 
+        '200':
+          description: success
+          content:
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/UserDetails'
+        '401':
+          description: Token is invalid or empty
+          content:
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /v1/admin/order/upload:
+    post:
+      summary: Upload an order document.
+      description: Upload a UBL order document in XML or JSON. 
+      tags:
+        - 'Invoice Generation and Management'
+      requestBody: 
+        required: true
+        content: 
+          multipart/form-data: 
+            schema: 
+              $ref: '#/components/schemas/UploadOrderContract'
+      responses: 
+        '200':
+          description: Order contract upload successful.
+          content: 
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/UploadOrderContract'
+        '400':
+          description: Invalid file format or Bad Request. 
+          content: 
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /v1/admin/order/parse:
+    post:
+      summary: Extract order details. 
+      description: Extract order details from uploaded Order Contract.
+      tags:
+        - 'Invoice Generation and Management'
+      requestBody: 
+        required: true
+        content: 
+          multipart/form-data: 
+            schema:
+              $ref: '#/components/schemas/UploadOrderContract'
+      responses:
+        '200':
+          description: successfully parsed Order Document.
+          content: 
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ParseOrderContract'
+        '400':
+          description: Invalid format or Bad Request.
+          content: 
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /v1/admin/order/draft-invoice:
+    post:
+      summary: Generate draft invoice
+      description: Drafts an invoice from parsed Order Contract.
+      tags: 
+        - 'Invoice Generation and Management'
+      requestBody: 
+        required: true
+        content: 
+          application/json: 
+            schema:
+              $ref: '#/components/schemas/DraftInvoiceRequest'
+      responses: 
+        '200':
+          description: Succesfully generated draft invoice.
+          content: 
+            application/json: 
+              schema:
+                $ref: '#/components/schemas/DraftInvoiceResponse'
+        '400':
+          description: Invalid file format or Bad Request.
+          content: 
+            application/json: 
+              schema:
+                $ref: '#/components/schemas/ErrorResponse' 
+                
+  /v1/invoices/generate:
+    post:
+      tags:
+        - 'Invoice Generation and Management'
+      summary: Generate UBL Invoice from Order Contract.
+      description: ''
+      requestBody: 
+        required: true
+        content: 
+          application/json: 
+            schema:
+              $ref: '#/components/schemas/CopyDataIntoInvoice'
+      responses:
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeneratedInvoice'
+        '400':
+          description: Bad request (malformed, invalid parameters, or missing fields).
+          content:
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Token is invalid or empty
+          content:
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorResponse'
+        '500': 
+          description: Internal error (unexpected failure).
+          content:
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service unavailable (down for maintenance).
+          content:
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /v1/admin/invoices:
+    get:
+      tags: 
+        - 'Invoice Generation and Management'
+      summary: Lists all user's generated UBL invoices.
+      security: 
+        - BearerAuth: []
+      description:
+      responses: 
+        '200':
+          description: Success.
+          content:
+            application/json: 
+              schema: 
+                type: array
+                items:
+                  $ref: '#/components/schemas/GeneratedInvoice'
+        '401':
+          description: Token is invalid or empty
+          content:
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorResponse'
+        '500': 
+          description: Internal error (unexpected failure).
+          content:
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /v1/invoices/{invoiceId}:
+    delete:
+      tags: 
+        - 'Invoice Generation and Management'
+      summary: Delete a particular invoice.
+      security: 
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: invoiceId
+          required: true
+          schema:
+            $ref: '#/components/schemas/InvoiceId'
+      description: Allows a loginned user to generate a standardised UBL Invoice
+      responses: 
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+            
+        '404':
+          description: Token is invalid or empty
+          content:
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorResponse'
+        '500': 
+          description: Internal error (unexpected failure).
+          content:
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      tags: 
+        - 'Invoice Generation and Management'
+      summary: Edit a particular invoice.
+      security: 
+        - BearerAuth: []      
+      parameters:
+        - in: path
+          name: invoiceId
+          required: true
+          schema:
+            $ref: '#/components/schemas/InvoiceId'
+      description: Allows a loginned user to edit fields in existing invoice
+      responses: 
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvoiceIdObj'
+        '404':
+          description: Token is invalid or empty
+          content:
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorResponse'
+        '500': 
+          description: Internal error (unexpected failure).
+          content:
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorResponse'
+    get:
+      tags: 
+        - 'Invoice Generation and Management'
+      summary: Get a particular invoice
+      description: Allows loginned user to retrieve a particular invoice
+      security: 
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: invoiceId
+          required: true
+          schema:
+            $ref: '#/components/schemas/InvoiceId'
+      responses: 
+        '200':
+          description: Succesfully retreived invoice
+          content:
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/GeneratedInvoice'
+        '401':
+          description: Token is invalid or empty
+          content:
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: InvoiceId is empty or does not exist
+          content:
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorResponse'
+        '500': 
+          description: Internal error (unexpected failure).
+          content:
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /v1/invoices/{invoiceId}/validate:
+    post:
+      tags:
+        - 'Validation'
+      summary: Validates generated invoice
+      description: Validates the invoice against UBL XSD schema and business rules.
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: invoiceId
+          required: true
+          schema:
+            $ref: '#/components/schemas/InvoiceId'
+      responses:
+        '200':
+          description: Validation result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationCheck'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Invoice not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
