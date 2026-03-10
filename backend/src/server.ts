@@ -8,7 +8,6 @@ import { authenticate } from '../middleware/authenticate.js'
 import { UserLogin, UserRegister} from './types.js'
 import { extractBearerToken } from './helper.js'
 
-const PORT=3000
 dotenv.config()
 const app = express()
 app.use(express.json())
@@ -21,12 +20,7 @@ if (!MONGODB_URI) {
   throw new Error('MONGODB_URI is undefined')
 }
 
-mongoose.connect(MONGODB_URI).then(() => {
-  console.log('Connected to mongodb')
-  app.listen(PORT, () =>
-    console.log(`Server is running on http://localhost:${PORT}`)
-  )
-})
+await mongoose.connect(MONGODB_URI)
 
 app.get('/', (req: Request, res: Response) => {
   res.send('Hello from Credit Crew')
@@ -69,7 +63,7 @@ app.post('/v1/admin/login', async (req: Request<{}, {}, UserLogin>, res: Respons
   }
 })
 
-// logs a loginned user out
+// logs out user
 app.post('/v1/admin/logout', authenticate, async (req: Request, res: Response) => {
   return res.status(200).json({})
 })
@@ -113,7 +107,7 @@ app.post('/v1/admin/invoice', authenticate, async (req: Request, res: Response) 
   try {
     const draftinput = req.body
     const user = req.user 
-    const userId = user.adminId
+    const userId = user!.adminId
     const result = await generateInvoiceDraft(draftinput, userId)
     return res.status(200).json({result})
   } catch (error) {
@@ -135,7 +129,7 @@ app.put('/v1/admin/invoice/finalise/:invoiceId', authenticate, async (req: Reque
   try {
     const invoiceId = req.params.invoiceId as string
     const user = req.user 
-    const userId = user.adminId
+    const userId = user!.adminId
     const result = await finaliseInvoice(invoiceId, userId)
     return res.status(200).json(result)
   } catch (error) {
@@ -153,7 +147,7 @@ app.get('/v1/admin/invoice/:invoiceId/xml', authenticate, async (req: Request, r
   try {
     const invoiceId = req.params.invoiceId as string
     const user = req.user
-    const userId = user.adminId
+    const userId = user!.adminId
     const xmlString= await exportInvoice(invoiceId, userId)
     res.setHeader('Content-Type', 'application/xml')
     res.setHeader('Content-Disposition', `attachment; filename=invoice-${invoiceId}.xml`)
@@ -173,7 +167,7 @@ app.get('/v1/admin/invoice/:invoiceId/xml', authenticate, async (req: Request, r
 app.get('/v1/admin/invoices', authenticate, async (req, res) => {
   try {
     const user = req.user
-    const userId = user.adminId
+    const userId = user!.adminId
     const invoices = await getAllInvoices(userId)
 
     res.status(200).json({invoices})
@@ -198,7 +192,7 @@ app.get('/v1/invoices/:invoiceId', authenticate, async (req, res) => {
     }
 
     const user = req.user
-    const userId = user.adminId
+    const userId = user!.adminId
     const invoice = await getInvoice(invoiceId as string, userId)
 
     res.status(200).json(invoice)
@@ -223,7 +217,7 @@ app.delete('/v1/invoices/:invoiceId', authenticate, async (req, res) => {
     }
 
     const user = req.user
-    const userId = user.adminId
+    const userId = user!.adminId
 
     await deleteInvoice(invoiceId as string, userId)
 
@@ -249,7 +243,7 @@ app.put('/v1/invoices/:invoiceId', authenticate, async (req, res) => {
     }
 
     const user = req.user
-    const userId = user.adminId
+    const userId = user!.adminId
     const updatedFields = req.body
 
     const invoice = await updateInvoice(invoiceId as string, userId, updatedFields)
@@ -268,3 +262,5 @@ app.put('/v1/invoices/:invoiceId', authenticate, async (req, res) => {
 app.post('/v1/invoices/:invoiceId/validate', async () => {
 
 })
+
+export default app

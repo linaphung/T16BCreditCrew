@@ -139,17 +139,20 @@ export interface GeneratedInvoice {
 }
 
 export interface ValidationCheck {
-  schemaValid: boolean;
   businessRulesValid: boolean;
 }
 
 export type DeleteInvoiceResponse = Record<string, never>;
 
+export interface AuthUser {
+  adminId: string
+}
+
 declare global {
 // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     interface Request {
-      user: jwt.JwtPayload;
+      user?: AuthUser
     }
   }
 }
