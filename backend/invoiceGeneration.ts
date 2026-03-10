@@ -2,6 +2,7 @@ import Invoice from './models/Invoice.js'
 import { GeneratedInvoice, InvoiceData, DraftInvoiceInput, DeleteInvoiceResponse } from './types.js'
 import { calculateLineExtension, getUserAbn, generateXMLString} from './helper.js'
 import {InvoiceBadRequest, InvoiceNotFoundError } from './errors.js'
+import {validateInvoiceHelper} from './invoiceValidation.js'
 
 export const generateInvoiceDraft = async (
   input: DraftInvoiceInput,
@@ -53,6 +54,7 @@ export const generateInvoiceDraft = async (
 
 }
 
+
 // finalises a valid invoice - cannot be editted
 export const finaliseInvoice = async(invoiceId: string, userId: string) => {
   const invoice = await Invoice.findOne({ _id: invoiceId, userId })
@@ -62,14 +64,16 @@ export const finaliseInvoice = async(invoiceId: string, userId: string) => {
   if (invoice.status === 'finalised') {
     throw new InvoiceBadRequest('Invoice is already finalised')
   }
-  if (invoice.status !== 'valid') {
-    throw new InvoiceBadRequest('Invoice has not been successfully validated')
-  }
 
   const invoiceData = invoice.invoiceData as InvoiceData
 
   // update invoice xml 
   const xmlString = generateXMLString(invoiceData, invoiceId)
+    // check if valid - after validation implemented
+  if (!validateInvoiceHelper(xmlString).valid) {
+    throw new InvoiceBadRequest('Invoice is not valid')
+  }
+
   invoice.invoiceXMLString = xmlString
   invoice.status = 'finalised'
   await invoice.save()
