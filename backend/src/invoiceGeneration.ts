@@ -1,4 +1,4 @@
-import Invoice from './models/Invoice.js'
+import Invoice from '../models/Invoice.js'
 import { GeneratedInvoice, InvoiceData, DraftInvoiceInput, DeleteInvoiceResponse } from './types.js'
 import { calculateLineExtension, getUserAbn, generateXMLString} from './helper.js'
 import {InvoiceBadRequest, InvoiceNotFoundError } from './errors.js'

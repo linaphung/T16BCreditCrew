@@ -1,5 +1,5 @@
 import validator from 'validator';
-import { InvalidPasswordError, InvalidEmailError, UserNotFound, InvalidTokenError } from './errors.js';
+import { InvalidPasswordError, InvalidEmailError, UserNotFound, InvalidTokenError } from './src/errors.js';
 import User from './models/User.js';
 import jwt from 'jsonwebtoken'
 import { Request } from 'express'

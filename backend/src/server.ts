@@ -4,7 +4,7 @@ import mongoose from 'mongoose'
 import dotenv from 'dotenv'
 import { adminAuthLogin, adminRegisterUser, adminUserDetails } from './auth.js'
 import {generateInvoiceDraft, getAllInvoices, getInvoice, updateInvoice,deleteInvoice, finaliseInvoice, exportInvoice} from './invoiceGeneration.js'
-import { authenticate } from './middleware/authenticate.js'
+import { authenticate } from '../middleware/authenticate.js'
 import { UserLogin, UserRegister} from './types.js'
 import { extractBearerToken } from './helper.js'
 

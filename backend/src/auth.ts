@@ -1,4 +1,4 @@
-import User from './models/User.js'
+import User from '../models/User.js'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import { validatePassword, validateEmail, getUser, validateToken, getUserFromToken } from './helper.js'
