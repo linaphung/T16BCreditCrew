@@ -64,7 +64,6 @@ export interface OrderLine {
   lineId: string;
   itemName: string;
   quantity: number;
-  unitCode: string;
   unitPrice: number;
 }
   
@@ -121,7 +120,6 @@ export interface InvoiceData {
   }
   seller: {
     name: string
-    abn: string
   }
   lineItems: OrderLine[]
   payableAmount: {
@@ -133,7 +131,7 @@ export interface InvoiceData {
 // interface for invoiceData has to be created
 export interface GeneratedInvoice {
   invoiceId: string;
-  invoiceStatus: 'draft' | 'invalid' | 'valid' | 'finalised';
+  invoiceStatus: 'draft' | 'invalid' | 'finalised';
   invoiceData: InvoiceData;
   invoiceXML: string;
 }

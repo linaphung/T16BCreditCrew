@@ -14,10 +14,6 @@ const lineItemSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
-  unitCode: {
-    type: String,
-    required: true
-  },
   unitPrice: {
     type: Number,
     required: true
@@ -62,7 +58,7 @@ const invoiceSchema = new mongoose.Schema({
 
   status : {
     type: String,
-    enum: ['draft', 'invalid', 'valid','finalised'],
+    enum: ['draft', 'invalid', 'finalised'],
     default: 'draft'
   },
 
