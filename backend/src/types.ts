@@ -1,5 +1,3 @@
-import jwt from 'jsonwebtoken'
-
 export interface ErrorObject {
   error: string;
   message: string;

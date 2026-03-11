@@ -1,6 +1,6 @@
 import Invoice from '../models/Invoice.js'
 import { GeneratedInvoice, InvoiceData, DraftInvoiceInput, DeleteInvoiceResponse } from './types.js'
-import { calculateLineExtension, getUserAbn, generateXMLString} from './helper.js'
+import { calculateLineExtension, generateXMLString} from './helper.js'
 import {InvoiceBadRequest, InvoiceNotFoundError } from './errors.js'
 import {validateInvoiceHelper} from './invoiceValidation.js'
 
@@ -10,8 +10,6 @@ export const generateInvoiceDraft = async (
 ): Promise<GeneratedInvoice> => {
   // calculate payable amount for orderlines
   const payableAmount = calculateLineExtension(input.orderLines)
-  // get user abn and name from database
-  const abn = await getUserAbn(userId)
   // create invoiceData
   const invoiceData: InvoiceData = {
     issueDate: input.issueDate,
