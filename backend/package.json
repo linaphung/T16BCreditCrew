@@ -8,7 +8,7 @@
     "tsc": "tsc --project tsconfig.json",
     "lint": "eslint '**/*.{ts,js}'",
     "lint-fix": "eslint --fix '**/*.{ts,js}'",
-    "start": "tsx server.ts",
+    "start": "tsx src/server.ts",
     "dev": "tsx watch --clear-screen=false server.ts"
   },
   "keywords": [],
