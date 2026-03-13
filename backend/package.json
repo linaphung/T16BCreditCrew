@@ -9,7 +9,7 @@
     "lint": "eslint '**/*.{ts,js}'",
     "lint-fix": "eslint --fix '**/*.{ts,js}'",
     "start": "tsx src/server.ts",
-    "dev": "tsx watch --clear-screen=false server.ts"
+    "dev": "tsx watch --clear-screen=false src/server.ts"
   },
   "keywords": [],
   "author": "",

@@ -17,12 +17,6 @@ const MONGODB_URI = process.env.MONGODB_URI
 
 console.log('URI exists?', Boolean(MONGODB_URI))
 
-if (!MONGODB_URI) {
-  throw new Error('MONGODB_URI is undefined')
-}
-
-await mongoose.connect(MONGODB_URI)
-
 app.get('/', (req: Request, res: Response) => {
   res.send('Hello from Credit Crew')
 })
@@ -35,6 +29,18 @@ app.get('/health', (req: Request, res: Response) => {
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })
+
+if (!MONGODB_URI) {
+  console.error('MONGODB_URI is undefined')
+} else {
+  mongoose.connect(MONGODB_URI)
+    .then(() => {
+      console.log('Connected to MongoDB')
+    })
+    .catch((error) => {
+      console.error('Failed to connect to MongoDB:', error)
+    })
+}
 
 // server route for adminRegisterUser
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
