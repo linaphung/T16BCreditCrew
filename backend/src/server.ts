@@ -27,13 +27,13 @@ app.get('/', (req: Request, res: Response) => {
   res.send('Hello from Credit Crew')
 })
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`)
-})
-
 // tests the health of the server and database
 app.get('/health', (req: Request, res: Response) => {
   res.status(200).json({ status: 'ok' })
+})
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`)
 })
 
 // server route for adminRegisterUser
