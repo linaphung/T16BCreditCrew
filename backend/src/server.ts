@@ -12,6 +12,7 @@ dotenv.config()
 const app = express()
 app.use(express.json())
 
+const PORT = process.env.PORT || 3000;
 const MONGODB_URI = process.env.MONGODB_URI
 
 console.log('URI exists?', Boolean(MONGODB_URI))
@@ -24,6 +25,10 @@ await mongoose.connect(MONGODB_URI)
 
 app.get('/', (req: Request, res: Response) => {
   res.send('Hello from Credit Crew')
+})
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`)
 })
 
 // tests the health of the server and database
