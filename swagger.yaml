@@ -13,8 +13,6 @@ servers:
 tags:
   - name: 'Account Creation and Management'
     description: Users can register and manage their account details. Possibly add two-factor authentication as user data contains personal information. 
-  - name: 'ABN validation'
-    description: Validates user's ABN.
   - name: 'Invoice Generation and Management' 
     description: Standardised UBL invoice with correct formatting and contents. Parses order, applies pricing rules, calculates totals and creates UBL XML.  
   - name: 'Validation'
@@ -50,7 +48,7 @@ components:
           type: string
           example: '12345678911'
 
-    RegisterResponse:
+    RegisterSuccess:
       type: object
       required:
         - adminId
@@ -65,6 +63,10 @@ components:
           example: 'NJmKsg5oiW...'
     
     InvoiceId:
+      type: integer
+      example: 123
+    
+    InvoiceIdObj:
       type: object
       properties:
         invoiceId:
@@ -86,7 +88,7 @@ components:
             format: password
             example: 'ILurvc4ts1234!'
 
-    UserLoginResponse:
+    UserLoginSuccess:
       type: object
       required:
         - adminId
@@ -140,18 +142,95 @@ components:
     ErrorResponse:
       type: object
       required: 
+        - code
         - error
-        - message
       properties:
+        code:
+          type: string
+          example: 'ERROR CODE'
         error:
           type: string
-          example: 'INVALID_SOMETHING'
-        message:
-          type: string
           example: 'error message'
+    
+    InvoicePeriod:
+      type: object
+      required:
+        - startDate
+        - endDate
+      properties:
+        startDate:
+          type: string
+          format: date
+          description: Start date of the invoicing period
+        endDate:
+          type: string
+          format: date
+          description: End date of the invoicing period
 
     InvoiceData:
       type: object
+      required:
+        - issueDate
+        - dueDate
+        - paymentTerms
+        - buyer
+        - seller
+        - lineItems
+        - payableAmount
+      properties:
+        issueDate:
+          type: string
+          format: date
+          description: Date the invoice was issued
+
+        dueDate:
+          type: string
+          format: date
+          description: Date the payment is due
+
+        paymentTerms:
+          type: string
+          description: Payment terms for the invoice
+
+        InvoicePeriod:
+          $ref: '#/components/schemas/InvoicePeriod'
+
+        buyer:
+          type: object
+          required:
+            - name
+          properties:
+            name:
+              type: string
+              description: Name of the buyer
+
+        seller:
+          type: object
+          required:
+            - name
+          properties:
+            name:
+              type: string
+              description: Name of the seller
+
+        lineItems:
+          type: array
+          items:
+            $ref: '#/components/schemas/orderLines'
+
+        payableAmount:
+          type: object
+          required:
+            - currency
+            - amount
+          properties:
+            currency:
+              type: string
+              description: Currency code (e.g. AUD, USD)
+            amount:
+              type: number
+              format: float
+              description: Total payable amount
 
     UploadOrderContract:
       type: object
@@ -163,7 +242,7 @@ components:
           format: binary
           description: Order contract in XML or JSON.
 
-    Names:
+    names:
       type: object
       required: 
         - name
@@ -172,13 +251,12 @@ components:
           type: string
           example: 'Happy Girl'
 
-    OrderLines:
+    orderLines:
       type: object
       required:
         - lineId
         - itemName
         - quantity
-        - unitCode
         - unitPrice
         - lineTotal
       properties: 
@@ -191,9 +269,6 @@ components:
         quantity:
           type: number
           example: 2
-        unitCode: 
-          type: string
-          example: 'SH'
         unitPrice: 
           type: number
           format: double
@@ -205,7 +280,7 @@ components:
         - orderId
         - buyer
         - seller
-        - orderLines
+        - lines
       properties: 
         orderId:
           type: string
@@ -226,13 +301,50 @@ components:
           items:
             $ref: '#/components/schemas/orderLines'
 
-    DraftInvoiceRequest:
+    InvoiceRequest:
       type: object
       required:
-        - parsedData
-      properties: 
-        parsedData:
-          $ref: '#/components/schemas/ParseOrderContract'
+        - issueDate
+        - dueDate
+        - paymentTerms
+        - buyer
+        - seller
+        - currency
+        - orderLines
+      properties:
+        issueDate:
+          type: string
+          format: date
+          description: Date the invoice is issued
+
+        invoicePeriod:
+          $ref: '#/components/schemas/InvoicePeriod'
+
+        dueDate:
+          type: string
+          format: date
+          description: Date payment is due
+
+        paymentTerms:
+          type: string
+          description: Payment terms for the invoice
+
+        buyer:
+          type: string
+          description: Name of the buyer
+
+        seller:
+          type: string
+          description: Name of the seller
+
+        currency:
+          type: string
+          description: Currency code for the invoice (e.g. AUD, USD)
+
+        orderLines:
+          type: array
+          items:
+            $ref: '#/components/schemas/orderLines'
 
     DraftInvoiceResponse:
       type: object
@@ -265,18 +377,6 @@ components:
         paymentTerms:
           type: string
           example: 'Payment due within 30 days'
-    
-    CopyDataIntoInvoice:
-      type: object
-      required:
-        - orderText
-        - userData
-      properties: 
-        orderText:
-          type: string
-          example: '<Order>...</Order>'
-        userData:
-          $ref: '#/components/schemas/InvoiceUserData'
   
     GeneratedInvoice:
       type: object
@@ -304,9 +404,13 @@ components:
         schemaValid:
           type: boolean
           example: true
-        businessRulesValid:
-          type: boolean
-          example: true 
+        errors:
+          type: array
+          items:
+            type: string
+          example:
+            - "Missing required field: issueDate"
+            - "Invalid currency code"
 
 
 paths:
@@ -328,7 +432,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RegisterResponse'
+                $ref: '#/components/schemas/RegisterSuccess'
         '400':
           description: Invalid email, password or business name.
           content:
@@ -378,36 +482,36 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /v1/admin/auth/authentication:
-    get:
-      tags:
-        - 'ABN validation'
-      summary: Verifies user's ABN.
-      description: Verifies the given ABN using ATO ABN Lookup API
-      parameters:
-        - name: abn
-          in: query
-          required: true
-          schema:
-            type: string
-      responses:
-        "400":
-          description: Bad request if the ABN is in an invalid format
-        "404":
-          description: Not found if ABN is not recognised/registered
-        "200":
-          description: ABN is valid
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status_message:
-                    type: string
-                  valid:
-                    type: boolean
-                  business_details:
-                    type: object
+  # /v1/admin/auth/authentication:
+  #   get:
+  #     tags:
+  #       - 'Account Creation and Management'
+  #     summary: Verifies user's ABN.
+  #     description: Verifies the given ABN using ATO ABN Lookup API
+  #     parameters:
+  #       - name: abn
+  #         in: query
+  #         required: true
+  #         schema:
+  #           type: string
+  #     responses:
+  #       "400":
+  #         description: Bad request if the ABN is in an invalid format
+  #       "404":
+  #         description: Not found if ABN is not recognised/registered
+  #       "200":
+  #         description: ABN is valid
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: object
+  #               properties:
+  #                 status_message:
+  #                   type: string
+  #                 valid:
+  #                   type: boolean
+  #                 business_details:
+  #                   type: object
 
   /v1/admin/auth/logout:
     post:
@@ -450,7 +554,7 @@ paths:
               $ref: '#/components/schemas/UserUpdate'
       security: 
         - BearerAuth: []
-      description: Updates user email, business name or password
+      description: Updates user email or business name
       responses: 
         '200': 
           description: Update successful
@@ -547,7 +651,7 @@ paths:
   /v1/admin/order/draft-invoice:
     post:
       summary: Generate draft invoice
-      description: Drafts an invoice from parsed Order Contract.
+      description: Drafts an invoice from parsed Order Contract and user input. User is able to edit and validate invoice while in draft status.
       tags: 
         - 'Invoice Generation and Management'
       requestBody: 
@@ -555,7 +659,7 @@ paths:
         content: 
           application/json: 
             schema:
-              $ref: '#/components/schemas/DraftInvoiceRequest'
+              $ref: '#/components/schemas/InvoiceRequest'
       responses: 
         '200':
           description: Succesfully generated draft invoice.
@@ -575,13 +679,13 @@ paths:
       tags:
         - 'Invoice Generation and Management'
       summary: Generate UBL Invoice from Order Contract.
-      description: ''
+      description: 'Automatically validates and finalises invoice, so it is ready to export'
       requestBody: 
         required: true
         content: 
           application/json: 
             schema:
-              $ref: '#/components/schemas/CopyDataIntoInvoice'
+              $ref: '#/components/schemas/InvoiceRequest'
       responses:
         '200':
           description: Success.
@@ -590,7 +694,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/GeneratedInvoice'
         '400':
-          description: Bad request (malformed, invalid parameters, or missing fields).
+          description: Bad request (malformed, invalid parameters, or missing fields, invoice did not pass xsd schema validation).
           content:
             application/json: 
               schema: 
@@ -747,6 +851,58 @@ paths:
           content:
             application/json: 
               schema: 
+                $ref: '#/components/schemas/ErrorResponse'
+  /v1/admin/invoice/{invoiceId}/xml:
+    get:
+      summary: Export invoice as XML
+      description: Exports the specified invoice as an XML document for the authenticated admin user.
+      tags:
+        - Invoice Generation and Management
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: invoiceId
+          in: path
+          required: true
+          description: ID of the invoice to export
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Invoice exported successfully as XML
+          content:
+            application/xml:
+              schema:
+                type: string
+                example: |
+                  <?xml version="1.0" encoding="UTF-8"?>
+                  <Invoice>
+                    <ID>12345</ID>
+                    <IssueDate>2026-03-10</IssueDate>
+                  </Invoice>
+        '400':
+          description: Invoice is invalid - does not pass validation against xsd schema
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized - missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Invoice not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
   /v1/invoices/{invoiceId}/validate:
