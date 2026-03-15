@@ -55,6 +55,9 @@ export const validateInvoice = async(invoiceId: string, userId: string) => {
   // update invoice xml 
   const xmlString = generateXMLString(invoiceData, invoiceId)
   const res = validateInvoiceHelper(xmlString)
+  invoice.invoiceXMLString = res.valid ? xmlString : ''
+  invoice.status = res.valid ? 'finalised' : 'invalid'
+  await invoice.save()
   // finalise xml here it self
   return res;
 }
