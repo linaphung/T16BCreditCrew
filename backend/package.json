@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "test": "jest",
-    "tsc": "tsc --project tsconfig.json",
+    "tsc": "tsc --noEmit",
     "lint": "eslint '**/*.{ts,js}'",
     "lint-fix": "eslint --fix '**/*.{ts,js}'",
     "start": "tsx src/server.ts",
@@ -27,6 +27,9 @@
     "xmlbuilder2": "^4.0.3"
   },
   "devDependencies": {
+    "@babel/core": "^7.29.0",
+    "@babel/preset-env": "^7.29.0",
+    "@babel/preset-typescript": "^7.28.5",
     "@eslint/js": "^10.0.1",
     "@types/bcrypt": "^6.0.0",
     "@types/express": "^5.0.6",
@@ -34,6 +37,7 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^25.3.5",
     "@types/validator": "^13.15.10",
+    "babel-jest": "^30.3.0",
     "eslint": "^10.0.3",
     "globals": "^17.4.0",
     "jest": "^30.2.0",
