@@ -10,11 +10,21 @@ describe("test getInvoice", () => {
   let invoice2Id: string;
 
   beforeAll(async () => {
-    const loginRes = await axios.post(`${SERVER_URL}/v1/admin/login`, {
-      email: "test_email@gmail.com",
-      password: "password1"
+    const randomString = Math.random().toString(36).substring(2,10)
+    const email = `test_${randomString}@gmail.com`
+    const password = "password1"
+    const registerRes = await axios.post(`${SERVER_URL}/v1/admin/auth/register`, {
+      email,
+      businessName: 'I Love Cats',
+      abn: '12345678901',
+      password
     })
+    expect(registerRes.status).toBe(200)
 
+    const loginRes = await axios.post(`${SERVER_URL}/v1/admin/login`, {
+      email,
+      password
+    })
     expect(loginRes.status).toBe(200);
     token = loginRes.data.token
 
