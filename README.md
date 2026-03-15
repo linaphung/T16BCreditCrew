@@ -60,3 +60,25 @@ That's it — you're ready to start generating invoices.
 Full API reference is available in [`swagger.yaml`](./swagger.yaml).
 You can paste it into [Swagger Editor](https://editor.swagger.io) to browse 
 and test all endpoints interactively.
+
+## Errors
+All errors follow a consistent response shape:
+```json
+{
+  "error": "ERROR_NAME",
+  "message": "A description of what went wrong."
+}
+```
+
+| HTTP Code | Error Name | Description |
+|-----------|------------|-------------|
+| 400 | `MISSING_FIELD` | A required field was not provided |
+| 400 | `INVALID_EMAIL` | Email is not a valid format or already in use |
+| 400 | `EMAIL_EXISTS` | An account with this email already exists |
+| 400 | `INVALID_PASSWORD` | Password does not meet requirements |
+| 400 | `INVALID_PASSWORD_OR_EMAIL` | Email and password combination is incorrect |
+| 400 | `INVALID_TOKEN` | Token is missing, expired, or invalid |
+| 400 | `Invoice_Bad_Request` | Invoice request is malformed or contains invalid data |
+| 404 | `USER_DOES_NOT_EXIST` | No account found for the given user |
+| 404 | `INVOICE_NOT_FOUND` | No invoice found with the given ID |
+| 500 | `Server Error` | An unexpected error occurred on our end |
