@@ -75,7 +75,7 @@ export interface ParseOrderContract {
 
 export interface DraftInvoiceInput {
   issueDate: string,
-  invoicePeriod: InvoicePeriod
+  invoicePeriod?: InvoicePeriod
   dueDate: string,
   paymentTerms: string,
   buyer: string,
@@ -112,7 +112,7 @@ export interface InvoiceData {
   issueDate: string,
   dueDate: string,
   paymentTerms: string,
-  invoicePeriod: InvoicePeriod,
+  invoicePeriod?: InvoicePeriod,
   buyer: {
     name: string
   }
