@@ -92,11 +92,23 @@ describe("test getInvoice", () => {
       headers: {Authorization: `Bearer ${token}`}
     })
 
-    const emptyLogin = await axios.post(`${SERVER_URL}/v1/admin/login`, {
-      email: "empty_test_email@gmail.com",
-      password: "password1"
+    const randomString = Math.random().toString(36).substring(2,10)
+    const emptyEmail = `test_${randomString}@gmail.com`
+    const emptyPassword = "password1"
+    const registerRes = await axios.post(`${SERVER_URL}/v1/admin/auth/register`, {
+      email: emptyEmail,
+      businessName: 'I Love Cats',
+      abn: '12345678901',
+      password: emptyPassword
     })
-    const emptyToken = emptyLogin.data.token;
+    expect(registerRes.status).toBe(200)
+
+    const emptyLogin = await axios.post(`${SERVER_URL}/v1/admin/login`, {
+      email: emptyEmail,
+      password: emptyPassword
+    })
+    expect(emptyLogin.status).toBe(200);
+    const emptyToken = emptyLogin.data.token
 
     const res = await axios.get(`${SERVER_URL}/v1/admin/invoices`, {
       headers: {
