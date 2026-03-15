@@ -7,7 +7,7 @@ import {generateInvoiceDraft, getAllInvoices, getInvoice, updateInvoice,deleteIn
 import { authenticate } from '../middleware/authenticate.js'
 import { UserLogin, UserRegister} from './types.js'
 import { extractBearerToken } from './helper.js'
-import { InvoiceNotFoundError } from './errors.js'
+import { InvoiceNotFoundError } from '../errors.js'
 import { validateInvoice } from './invoiceValidation.js'
 
 dotenv.config()

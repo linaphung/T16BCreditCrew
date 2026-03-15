@@ -3,7 +3,7 @@ import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import { validatePassword, validateEmail, getUser, validateToken, getUserFromToken } from './helper.js'
 import { RegisterResponse, UserDetails, UserLoginResponse, UserLogout } from './types.js'
-import { MissingFieldError, IncorrectEmailPasswordError, InvalidTokenError } from './errors.js'
+import { MissingFieldError, IncorrectEmailPasswordError, InvalidTokenError } from '../errors.js'
 
 //!                          adminRegisterUser
 /* 
