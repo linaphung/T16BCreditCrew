@@ -25,7 +25,7 @@ describe('test invoice draft generation', () => {
     token = loginRes.data.token
   })
 
-  test.skip('succesfully create draft invoice', async () => {
+  test('succesfully create draft invoice', async () => {
     const res = await axios.post(`${SERVER_URL}/v1/admin/invoice`, {
       issueDate: '2026-03-15',
       invoicePeriod: {
@@ -56,7 +56,7 @@ describe('test invoice draft generation', () => {
     expect(res.data.result.invoiceId).toStrictEqual(expect.any(String))
   })
 
-  test.skip('missing or invalid token prevent draft invoice generation', async () => {
+  test('missing or invalid token prevent draft invoice generation', async () => {
     const invalid_token = ''
     const res = await axios.post(`${SERVER_URL}/v1/admin/invoice`, {
       issueDate: '2026-03-15',
