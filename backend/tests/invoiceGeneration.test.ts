@@ -135,6 +135,7 @@ describe('test invoice deletion', () => {
       }
     });
     
+    //expect to return an empty object and a status code 200
     expect(res.status).toBe(200);
     expect(res.data).toEqual({});
   });
@@ -152,10 +153,10 @@ describe('test invoice deletion', () => {
   });
 
   test('Test when a user attempts to delete someone elses invoice', async () => {
-    // generate a uniq
+    // generate a uniqe email using date
     const randomEmail = `hacker_${Date.now()}@gmail.com`;
 
-    // 2. Register the new user
+    // register a new user
     await axios.post(`${SERVER_URL}/v1/admin/auth/register`, {
         email: randomEmail,
         businessName: 'Hackers Crew',
@@ -163,7 +164,7 @@ describe('test invoice deletion', () => {
         password: 'password123'
     });
 
-    // 3. Login (This will now return a real token)
+    // Login with the random user
     const loginRes = await axios.post(`${SERVER_URL}/v1/admin/login`, {
         email: randomEmail,
         password: 'password123'
@@ -171,7 +172,7 @@ describe('test invoice deletion', () => {
     
     const randomPersonToken = loginRes.data.token;
 
-    // 4. Attempt to delete Mason's invoice
+    // attempt to delete another users email 
     const res = await axios.delete(`${SERVER_URL}/v1/invoices/${invoiceId}`, {
       headers: { Authorization: `Bearer ${randomPersonToken}` },
       validateStatus: () => true 
