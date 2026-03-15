@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "test": "jest",
+    "test:unit": "jest tests/unit",
+    "test:system": "jest tests/system",
     "tsc": "tsc --noEmit",
     "lint": "eslint '**/*.{ts,js}'",
     "lint-fix": "eslint --fix '**/*.{ts,js}'",
