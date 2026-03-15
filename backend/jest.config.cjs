@@ -1,6 +1,5 @@
-import type { Config } from 'jest'
-
-const config: Config = {
+/** @type {import('jest').Config} */
+const config = {
   preset: 'ts-jest/presets/default-esm',
   testEnvironment: 'node',
   maxWorkers: 1,
@@ -13,8 +12,8 @@ const config: Config = {
   },
   collectCoverageFrom: [
     'src/**/*.ts',
-    '!src/server.ts'
+    '!src/server.ts',
   ],
 }
 
-export default config
+module.exports = config
