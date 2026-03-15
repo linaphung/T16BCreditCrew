@@ -126,7 +126,7 @@ export const updateInvoice = async (invoiceId: string, userId: string, updatedFi
   const invoice = await Invoice.findOne({ _id: invoiceId, userId })
 
   if (!invoice) {
-    throw new Error("Invoice not found")
+    throw new InvoiceNotFoundError("Invoice not found")
   }
 
   invoice.invoiceData = Object.assign({}, invoice.invoiceData, updatedFields);
