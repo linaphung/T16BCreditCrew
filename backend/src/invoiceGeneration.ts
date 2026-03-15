@@ -98,7 +98,7 @@ export const getInvoice = async (invoiceId: string, userId: string): Promise<Gen
   const invoice = await Invoice.findOne({ _id: invoiceId, userId })
 
   if (!invoice) {
-    throw new Error("Invoice not found")
+    throw new InvoiceNotFoundError("Invoice not found")
   }
 
   return {
