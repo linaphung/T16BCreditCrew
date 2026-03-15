@@ -42,7 +42,7 @@ describe('test invoice draft generation', () => {
     invoiceId = res.data.result.invoiceId
   })
 
-  test ('valid invoice returns no errors', async () => {
+  test('valid invoice returns no errors', async () => {
     const res = await axios.post(`${SERVER_URL}/v1/invoices/${invoiceId}/validate`, {}, 
     {
       headers: {
