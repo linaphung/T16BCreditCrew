@@ -4,7 +4,7 @@ A simple API to generate a UBL invoice from user provided data.
 
 ## Overview
 
-A simple REST API for generating and managing invoices. Send a few fields, get back a ready-to-send PDF — no billing platform required.
+A simple REST API for generating and managing invoices. Send a few fields, get back a ready-to-send XML — no billing platform required.
 
 **Base URL:** ``
 
@@ -19,7 +19,7 @@ Get up and running in 3 steps.
 
 ### 1. Register an account
 ```bash
-curl -X POST https://api.acme.com/v1/auth/register \
+curl -X POST https://api.com/v1/auth/register \
   -H "Content-Type: application/json" \
   -d '{
     "email": "jane@example.com",
@@ -31,7 +31,7 @@ curl -X POST https://api.acme.com/v1/auth/register \
 
 ### 2. Log in to get a token
 ```bash
-curl -X POST https://api.acme.com/v1/auth/login \
+curl -X POST https://api.com/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "jane@example.com",
@@ -46,7 +46,7 @@ Response:
 
 ### 3. Generate your first invoice
 ```bash
-curl -X POST https://api.acme.com/v1/admin/invoice \
+curl -X POST https://api.com/v1/admin/invoice \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
