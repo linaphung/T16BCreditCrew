@@ -2,9 +2,19 @@
 
 A simple API to generate a UBL invoice from user provided data.
 
+## Table of Contents
+- [Overview](#overview)
+- [Authentication](#authentication)
+  - [Register](#register)
+  - [Login](#login)
+- [Quick Start](#quick-start)
+- [Endpoints](#endpoints)
+- [Errors](#errors)
+- [Changelog](#changelog)
+
 ## Overview
 
-A simple REST API for generating and managing invoices. Send a few fields, get back a ready-to-send XML — no billing platform required.
+A simple REST API for generating and managing invoices. Send a few fields, get back a ready-to-send UBL formatted XML — no billing platform required.
 
 **Base URL:** ``
 
@@ -23,7 +33,7 @@ curl -X POST https://api.com/v1/auth/register \
   -H "Content-Type: application/json" \
   -d '{
     "email": "jane@example.com",
-    "businessName": "Jane's Design Co.",
+    "businessName": "Janes Design Co.",
     "abn": "12345678901",
     "password": "••••••••"
   }'
@@ -42,7 +52,6 @@ Response:
 ```json
 { "token": "eyJhbGciOiJIUzI1NiIs..." }
 ```
-> **Note:** Tokens expire after 1 hour. Log in again to get a new one.
 
 ### 3. Generate your first invoice
 ```bash
