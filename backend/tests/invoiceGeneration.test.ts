@@ -1,4 +1,4 @@
-import axios from 'axios'
+import axios, { AxiosError } from 'axios'
 // test for no token
 const PORT = process.env.PORT || 3000;
 const SERVER_URL = `http://localhost:${PORT}`;
@@ -47,7 +47,7 @@ describe('test invoice draft generation', () => {
 
   test('missing or invalid token prevent draft invoice generation', async () => {
     try {
-      const res = await axios.post(`${SERVER_URL}/v1/admin/invoice`, {
+      await axios.post(`${SERVER_URL}/v1/admin/invoice`, {
         issueDate: '2026-03-15',
         invoicePeriod: {
             invoiceStartDate: '2026-03-01',
@@ -73,8 +73,9 @@ describe('test invoice draft generation', () => {
         }
       })       
 
-    } catch (err: any) {
-      expect(err.response.data).toEqual({
+    } catch (error: unknown) {
+      const err = error as AxiosError
+      expect(err.response?.data).toEqual({
         error: 'INVALID_TOKEN',
         message: 'Token is invalid or empty'
       });
