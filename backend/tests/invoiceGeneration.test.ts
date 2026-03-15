@@ -75,9 +75,9 @@ describe('test invoice draft generation', () => {
     })       
     expect(res.status).toBe(400);
     expect(res.data).toEqual({
-    error: 'INVALID_TOKEN',
-    message: 'Token is invalid or empty'
-  });
+      error: 'INVALID_TOKEN',
+      message: 'Token is invalid or empty'
+    });
 
 
   })

@@ -15,10 +15,10 @@ export const generateInvoiceDraft = async (
     issueDate: input.issueDate,
     dueDate: input.dueDate,
     paymentTerms: input.paymentTerms,
-    invoicePeriod: {
+    invoicePeriod: input.invoicePeriod ? {
       invoiceStartDate: input.invoicePeriod.invoiceStartDate,
       invoiceEndDate: input.invoicePeriod.invoiceEndDate,
-    },
+    }: undefined,
     buyer: {
       name: input.buyer
     },
