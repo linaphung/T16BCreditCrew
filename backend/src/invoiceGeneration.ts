@@ -53,7 +53,12 @@ export const generateInvoiceDraft = async (
 
 // finalises a valid invoice - cannot be editted
 export const finaliseInvoice = async(invoiceId: string, userId: string) => {
-  const invoice = await Invoice.findOne({ _id: invoiceId, userId })
+  let invoice;
+  try {
+      invoice = await Invoice.findOne({ _id: invoiceId, userId })
+    } catch {
+      throw new InvoiceNotFoundError('Invoice does not exist')
+    }
   if (!invoice) {
     throw new InvoiceNotFoundError('Invoice does not exist')
   }
@@ -79,7 +84,12 @@ export const finaliseInvoice = async(invoiceId: string, userId: string) => {
 
 // exports invoice as xml document
 export const exportInvoice = async(invoiceId: string, userId: string) => {
-  const invoice = await Invoice.findOne({ _id: invoiceId, userId })
+  let invoice;
+  try {
+    invoice = await Invoice.findOne({ _id: invoiceId, userId })
+  } catch {
+    throw new InvoiceNotFoundError('Invoice does not exist')
+  }
   if (!invoice) {
     throw new InvoiceNotFoundError('Invoice does not exist')
   }

@@ -1,5 +1,4 @@
 import axios from 'axios'
-// test for no token
 const PORT = process.env.PORT || 3000;
 const SERVER_URL = `http://localhost:${PORT}`;
 
@@ -24,7 +23,7 @@ describe('test invoice draft generation', () => {
     })
     expect(loginRes.status).toBe(200);
     token = loginRes.data.token
-
+    
     const res = await axios.post(`${SERVER_URL}/v1/admin/invoice`, {
       issueDate: '2026-03-15',
       invoicePeriod: {
@@ -64,7 +63,47 @@ describe('test invoice draft generation', () => {
     }
   })
 
-  test ('valid invoice returns no errors', async () => {
+  test('successfully finalise a valid invoice', async () => {
+    const res = await axios.put(`${SERVER_URL}/v1/admin/invoice/finalise/${invoiceId}`, 
+    {}, 
+    {
+      headers: {
+        Authorization: `Bearer ${token}`
+      },
+      validateStatus: () => true
+    })       
+    expect(res.status).toBe(200)
+    expect(res.data.invoiceId).toBe(invoiceId)
+  })
+
+  test('error when trying to finalise a invoice that is already finalised', async () => {
+    const res1 = await axios.put(`${SERVER_URL}/v1/admin/invoice/finalise/${invoiceId}`, 
+    {}, 
+    {
+      headers: {
+        Authorization: `Bearer ${token}`
+      },
+      validateStatus: () => true
+    })  
+    expect(res1.status).toBe(200)     
+    expect(res1.data.invoiceId).toBe(invoiceId)
+    
+    const res2 = await axios.put(`${SERVER_URL}/v1/admin/invoice/finalise/${invoiceId}`, 
+    {}, 
+    {
+      headers: {
+        Authorization: `Bearer ${token}`
+      },
+      validateStatus: () => true
+    })       
+    expect(res2.status).toBe(400)
+    expect(res2.data).toEqual({
+      error: 'Invoice_Bad_Request',
+      message: 'Invoice is already finalised'
+    });
+  })
+
+  test('error when trying to finalise a invoice that is already finalised after validation', async () => {
     const res = await axios.post(`${SERVER_URL}/v1/invoices/${invoiceId}/validate`, {}, 
     {
       headers: {
@@ -75,9 +114,23 @@ describe('test invoice draft generation', () => {
     expect(res.status).toBe(200);
     expect(res.data.valid).toBe(true);
     expect(res.data.errors.length).toBe(0);
+    
+    const res2 = await axios.put(`${SERVER_URL}/v1/admin/invoice/finalise/${invoiceId}`, 
+    {}, 
+    {
+      headers: {
+        Authorization: `Bearer ${token}`
+      },
+      validateStatus: () => true
+    })       
+    expect(res2.status).toBe(400)
+    expect(res2.data).toEqual({
+      error: 'Invoice_Bad_Request',
+      message: 'Invoice is already finalised'
+    });
   })
 
-  test('invalid invoice - missing issue data and invoicePeriod', async () => {
+  test ('invalid invoice - missing issue data and invoicePeriod', async () => {
     const invalidInvoiceRequest = await axios.post(`${SERVER_URL}/v1/admin/invoice`, {
       issueDate: '',
       dueDate: '2026-03-30',
@@ -102,21 +155,24 @@ describe('test invoice draft generation', () => {
     expect(invalidInvoiceRequest.status).toBe(200);
     invoiceId = invalidInvoiceRequest.data.result.invoiceId
     
-    const res = await axios.post(`${SERVER_URL}/v1/invoices/${invoiceId}/validate`, {}, 
+    const res = await axios.put(`${SERVER_URL}/v1/admin/invoice/finalise/${invoiceId}`,
+    {}, 
     {
       headers: {
         Authorization: `Bearer ${token}`
       },
       validateStatus: () => true
     })       
-    expect(res.status).toBe(200);
-    expect(res.data.valid).toBe(false);
-    expect(res.data.errors.length).toBe(3);
+    expect(res.status).toEqual(400)
+    expect(res.data).toEqual({
+      error: 'Invoice_Bad_Request',
+      message: 'Invoice is not valid'
+    });
   })
 
-  test('invalid or missing token', async () => {
+  test ('invalid or missing token', async () => {
     const invalid_token = ''
-    const res = await axios.post(`${SERVER_URL}/v1/invoices/${invoiceId}/validate`, 
+    const res = await axios.put(`${SERVER_URL}/v1/admin/invoice/finalise/${invoiceId}`, 
     {}, 
     {
       headers: {
@@ -132,7 +188,7 @@ describe('test invoice draft generation', () => {
 
   test('missing or invalid invoiceId', async () => {
     const invalid_invoiceId = 'invalidInvoiceId'
-    const res = await axios.post(`${SERVER_URL}/v1/invoices/${invalid_invoiceId}/validate`, {}, 
+    const res = await axios.put(`${SERVER_URL}/v1/admin/invoice/finalise/${invalid_invoiceId}`, {}, 
     {
       headers: {
         Authorization: `Bearer ${token}`

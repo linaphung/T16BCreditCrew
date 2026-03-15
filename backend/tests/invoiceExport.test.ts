@@ -1,5 +1,4 @@
 import axios from 'axios'
-// test for no token
 const PORT = process.env.PORT || 3000;
 const SERVER_URL = `http://localhost:${PORT}`;
 
@@ -24,7 +23,7 @@ describe('test invoice draft generation', () => {
     })
     expect(loginRes.status).toBe(200);
     token = loginRes.data.token
-
+    
     const res = await axios.post(`${SERVER_URL}/v1/admin/invoice`, {
       issueDate: '2026-03-15',
       invoicePeriod: {
@@ -64,60 +63,50 @@ describe('test invoice draft generation', () => {
     }
   })
 
-  test ('valid invoice returns no errors', async () => {
-    const res = await axios.post(`${SERVER_URL}/v1/invoices/${invoiceId}/validate`, {}, 
+  test('successfully exports a finalised xml document', async () => {
+    const res1 = await axios.put(`${SERVER_URL}/v1/admin/invoice/finalise/${invoiceId}`, 
+    {}, 
     {
       headers: {
         Authorization: `Bearer ${token}`
       },
       validateStatus: () => true
     })       
-    expect(res.status).toBe(200);
-    expect(res.data.valid).toBe(true);
-    expect(res.data.errors.length).toBe(0);
+    expect(res1.status).toBe(200)
+    expect(res1.data.invoiceId).toBe(invoiceId)
+    const res2 = await axios.get(`${SERVER_URL}/v1/admin/invoice/${invoiceId}/xml`, 
+    {
+      headers: {
+        Authorization: `Bearer ${token}`
+      },
+      validateStatus: () => true
+    })   
+    expect(res2.status).toBe(200)     
+    expect(res2.headers['content-type']).toContain('application/xml')
+    expect(res2.headers['content-disposition']).toContain(`invoice-${invoiceId}.xml`)
+    expect(res2.data).toContain('<?xml')
   })
 
-  test('invalid invoice - missing issue data and invoicePeriod', async () => {
-    const invalidInvoiceRequest = await axios.post(`${SERVER_URL}/v1/admin/invoice`, {
-      issueDate: '',
-      dueDate: '2026-03-30',
-      paymentTerms: 'Payment due within 30 days',
-      buyer: 'ABC test',
-      seller: 'test business',
-      currency: 'AUD',
-      orderLines: [
-        {
-          lineId: '1',
-          itemName: 'brick',
-          quantity: 100,
-          unitPrice: 10,
-        }
-      ],
-    }, 
-    {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    })
-    expect(invalidInvoiceRequest.status).toBe(200);
-    invoiceId = invalidInvoiceRequest.data.result.invoiceId
-    
-    const res = await axios.post(`${SERVER_URL}/v1/invoices/${invoiceId}/validate`, {}, 
+
+  test('prevents exporting an invoice that is not finalised', async () => {
+    const res = await axios.get(`${SERVER_URL}/v1/admin/invoice/${invoiceId}/xml`, 
     {
       headers: {
         Authorization: `Bearer ${token}`
       },
       validateStatus: () => true
-    })       
-    expect(res.status).toBe(200);
-    expect(res.data.valid).toBe(false);
-    expect(res.data.errors.length).toBe(3);
+    })        
+    expect(res.status).toBe(400)
+    expect(res.data).toEqual({
+      error: 'Invoice_Bad_Request',
+      message: 'Invoice has not been successfully finalised'
+    });
   })
+
 
   test('invalid or missing token', async () => {
     const invalid_token = ''
-    const res = await axios.post(`${SERVER_URL}/v1/invoices/${invoiceId}/validate`, 
-    {}, 
+    const res = await axios.get(`${SERVER_URL}/v1/admin/invoice/${invoiceId}/xml`, 
     {
       headers: {
         Authorization: `Bearer ${invalid_token}`
@@ -132,14 +121,13 @@ describe('test invoice draft generation', () => {
 
   test('missing or invalid invoiceId', async () => {
     const invalid_invoiceId = 'invalidInvoiceId'
-    const res = await axios.post(`${SERVER_URL}/v1/invoices/${invalid_invoiceId}/validate`, {}, 
+    const res = await axios.get(`${SERVER_URL}/v1/admin/invoice/${invalid_invoiceId}/xml`, 
     {
       headers: {
         Authorization: `Bearer ${token}`
       },
       validateStatus: () => true
     })       
-    expect(res.status).toBe(404);
     expect(res.data).toEqual({
       error: 'INVOICE_NOT_FOUND',
       message: 'Invoice does not exist'

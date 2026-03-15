@@ -1,5 +1,4 @@
 import axios from 'axios'
-// test for no token
 const PORT = process.env.PORT || 3000;
 const SERVER_URL = `http://localhost:${PORT}`;
 
