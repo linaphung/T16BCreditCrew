@@ -91,3 +91,6 @@ All errors follow a consistent response shape:
 | 404 | `USER_DOES_NOT_EXIST` | No account found for the given user |
 | 404 | `INVOICE_NOT_FOUND` | No invoice found with the given ID |
 | 500 | `Server Error` | An unexpected error occurred on our end |
+
+## Changelog
+See [CHANGELOG.md](./CHANGELOG.md) for release history.
