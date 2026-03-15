@@ -2,7 +2,7 @@ import express from 'express'
 import { Request, Response } from 'express'
 import mongoose from 'mongoose'
 import dotenv from 'dotenv'
-import { adminAuthLogin, adminRegisterUser, adminUserDetails } from './auth.js'
+import { adminAuthLogin, adminRegisterUser, adminUserDetails, adminUserDetailsUpdate } from './auth.js'
 import {generateInvoiceDraft, getAllInvoices, getInvoice, updateInvoice,deleteInvoice, finaliseInvoice, exportInvoice} from './invoiceGeneration.js'
 import { authenticate } from '../middleware/authenticate.js'
 import { UserLogin, UserRegister} from './types.js'
@@ -83,8 +83,19 @@ app.post('/v1/admin/logout', authenticate, async (req: Request, res: Response) =
 
 
 // update user details
-app.put('/v1/admin/user/details', async () => {
-
+app.put('/v1/admin/user/details', authenticate, async (req: Request, res: Response) => {
+  try {
+    const token = extractBearerToken(req)!
+    const { email, businessName, password } = req.body
+    const result = await adminUserDetailsUpdate(token, { email, businessName, password })
+    return res.status(200).json(result)
+  } catch (error) {
+    const err = error as Error
+    return res.status(400).json({
+      error: err.name,
+      message: err.message
+    })
+  }
 })
 
 // get user details
@@ -133,8 +144,6 @@ app.post('/v1/admin/invoice', authenticate, async (req: Request, res: Response) 
       message: message,
     })
   }
-
-
 })
 
 // update status to finalised 
