@@ -6,10 +6,21 @@ const SERVER_URL = `http://localhost:${PORT}`;
 describe('test invoice draft generation', () => {
   let token: string;
   beforeEach(async () => {
+    const randomString = Math.random().toString(36).substring(2,10)
+    const email = `test_${randomString}@gmail.com`
+    const password = "password1"
+    const registerRes = await axios.post(`${SERVER_URL}/v1/admin/auth/register`, {
+      email,
+      businessName: 'I Love Cats',
+      abn: '12345678901',
+      password
+    })
+    expect(registerRes.status).toBe(200)
+
     const loginRes = await axios.post(`${SERVER_URL}/v1/admin/login`, {
-        email: 'leahe@gmail.com',
-        password: 'leah1234'
-    });
+      email,
+      password
+    })
     expect(loginRes.status).toBe(200);
     token = loginRes.data.token
   })
@@ -77,8 +88,6 @@ describe('test invoice draft generation', () => {
     expect(res.data).toEqual({
       error: 'INVALID_TOKEN',
       message: 'Token is invalid or empty'
-    });
-
-
+    })
   })
 })

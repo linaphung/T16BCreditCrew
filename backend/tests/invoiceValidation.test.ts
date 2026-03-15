@@ -7,12 +7,24 @@ describe('test invoice draft generation', () => {
   let token: string;
   let invoiceId: string;
   beforeEach(async () => {
+    const randomString = Math.random().toString(36).substring(2,10)
+    const email = `test_${randomString}@gmail.com`
+    const password = "password1"
+    const registerRes = await axios.post(`${SERVER_URL}/v1/admin/auth/register`, {
+      email,
+      businessName: 'I Love Cats',
+      abn: '12345678901',
+      password
+    })
+    expect(registerRes.status).toBe(200)
+
     const loginRes = await axios.post(`${SERVER_URL}/v1/admin/login`, {
-        email: 'leahe@gmail.com',
-        password: 'leah1234'
-    });
+      email,
+      password
+    })
     expect(loginRes.status).toBe(200);
     token = loginRes.data.token
+
     const res = await axios.post(`${SERVER_URL}/v1/admin/invoice`, {
       issueDate: '2026-03-15',
       invoicePeriod: {
@@ -42,7 +54,7 @@ describe('test invoice draft generation', () => {
     invoiceId = res.data.result.invoiceId
   })
 
-  test ('valid invoice returns no errors', async () => {
+  test('valid invoice returns no errors', async () => {
     const res = await axios.post(`${SERVER_URL}/v1/invoices/${invoiceId}/validate`, {}, 
     {
       headers: {
@@ -55,7 +67,7 @@ describe('test invoice draft generation', () => {
     expect(res.data.errors.length).toBe(0);
   })
 
-  test ('invalid invoice - missing issue data and invoicePeriod', async () => {
+  test('invalid invoice - missing issue data and invoicePeriod', async () => {
     const invalidInvoiceRequest = await axios.post(`${SERVER_URL}/v1/admin/invoice`, {
       issueDate: '',
       dueDate: '2026-03-30',
@@ -92,7 +104,7 @@ describe('test invoice draft generation', () => {
     expect(res.data.errors.length).toBe(3);
   })
 
-  test ('invalid or missing token', async () => {
+  test('invalid or missing token', async () => {
     const invalid_token = ''
     const res = await axios.post(`${SERVER_URL}/v1/invoices/${invoiceId}/validate`, 
     {}, 

@@ -7,6 +7,7 @@ import {generateInvoiceDraft, getAllInvoices, getInvoice, updateInvoice,deleteIn
 import { authenticate } from '../middleware/authenticate.js'
 import { UserLogin, UserRegister} from './types.js'
 import { extractBearerToken } from './helper.js'
+import { InvoiceNotFoundError } from './errors.js'
 import { validateInvoice } from './invoiceValidation.js'
 
 dotenv.config()
@@ -183,12 +184,13 @@ app.get('/v1/admin/invoices', authenticate, async (req, res) => {
     const invoices = await getAllInvoices(userId)
 
     res.status(200).json({invoices})
-  } catch (error) {
-    const err = error as Error
-    return res.status(400).json({
-      error: err.name,
-      message: err.message
-    })
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      return res.status(500).json({
+        error: err.name,
+        message: "Internal error (unexpected failure)."
+      })
+    }
   }
 })
 
@@ -197,7 +199,7 @@ app.get('/v1/invoices/:invoiceId', authenticate, async (req, res) => {
   try {
     const {invoiceId} = req.params
     if (!invoiceId) {
-      return res.status(401).json({
+      return res.status(404).json({
         error: "invoiceId is invalid or empty",
         message: "invoiceId is invalid or empty"
       })
@@ -208,12 +210,25 @@ app.get('/v1/invoices/:invoiceId', authenticate, async (req, res) => {
     const invoice = await getInvoice(invoiceId as string, userId)
 
     res.status(200).json(invoice)
-  } catch (error) {
-    const err = error as Error
-    return res.status(400).json({
-      error: err.name,
-      message: err.message
-    })
+  } catch (err: unknown) {
+    if (err instanceof InvoiceNotFoundError) {
+      return res.status(404).json({
+        error: err.name,
+        message: err.message
+      })
+    }
+    if (err instanceof Error && err.name === 'CastError') {
+      return res.status(404).json({
+        error: "invoiceId is invalid or empty",
+        message: "invoiceId is invalid or empty"
+      })
+    }
+    if (err instanceof Error) {
+      return res.status(500).json({
+        error: err.name,
+        message: "Internal error (unexpected failure)."
+      })
+    }
   }
 })
 
@@ -261,12 +276,25 @@ app.put('/v1/invoices/:invoiceId', authenticate, async (req, res) => {
     const invoice = await updateInvoice(invoiceId as string, userId, updatedFields)
 
     res.status(200).json(invoice)
-  } catch (error) {
-    const err = error as Error
-    return res.status(400).json({
-      error: err.name,
-      message: err.message
-    })
+  } catch (err: unknown) {
+    if (err instanceof InvoiceNotFoundError) {
+      return res.status(404).json({
+        error: err.name,
+        message: err.message
+      })
+    }
+    if (err instanceof Error && err.name === 'CastError') {
+      return res.status(404).json({
+        error: "invoiceId is invalid or empty",
+        message: "invoiceId is invalid or empty"
+      })
+    }
+    if (err instanceof Error) {
+      return res.status(500).json({
+        error: err.name,
+        message: "Internal error (unexpected failure)."
+      })
+    }
   }
 })
 
