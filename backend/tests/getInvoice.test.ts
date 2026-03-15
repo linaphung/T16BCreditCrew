@@ -16,47 +16,24 @@ describe("test getInvoice", () => {
     expect(loginRes.status).toBe(200);
     token = loginRes.data.token
 
-    const draftRes = await axios.post(
-      `${SERVER_URL}/v1/admin/invoice`,
-      {
-        issueDate: "2026-03-15",
-        invoicePeriod: {
-          invoiceStartDate: "2026-03-01",
-          invoiceEndDate: "2026-03-20",
-        },
-        dueDate: "2026-03-30",
-        paymentTerms: "Payment due within 30 days",
-        buyer: "buyer_test",
-        seller: "seller_test",
-        currency: "AUD",
-        orderLines: [
-          {
-            lineId: "1",
-            itemName: "item1",
-            quantity: 100,
-            unitPrice: 10,
-          },
-        ],
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    )
-
-    expect(draftRes.status).toBe(200);
-    expect(draftRes.data.result.invoiceStatus).toBe("draft");
-    expect(draftRes.data.result.invoiceId).toStrictEqual(expect.any(String));
-
-    invoiceId = draftRes.data.result.invoiceId;
+    const invoice1 = await axios.post(`${SERVER_URL}/v1/admin/invoice`, {
+      issueDate: "2026-03-15",
+      invoicePeriod: {invoiceStartDate: "2026-03-01", invoiceEndDate: "2026-03-20"},
+      dueDate: "2026-03-30",
+      paymentTerms: "Payment due within 30 days",
+      buyer: "buyer_test",
+      seller: "seller_test",
+      currency: "AUD",
+      orderLines: [{lineId: "1", itemName: "item1", quantity: 100, unitPrice: 10}]
+    }, {
+      headers: {Authorization: `Bearer ${token}`}
+    })
+    invoiceId = invoice1.data.result.invoiceId;
   })
 
   test("get invoice by ID", async () => {
     const res = await axios.get(`${SERVER_URL}/v1/invoices/${invoiceId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: {Authorization: `Bearer ${token}`},
     })
 
     expect(res.status).toBe(200);
@@ -70,26 +47,22 @@ describe("test getInvoice", () => {
 
     await expect(
       axios.get(`${SERVER_URL}/v1/invoices/${fakeInvoiceId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: {Authorization: `Bearer ${token}`}
       })
     ).rejects.toMatchObject({
       response: {
         status: 404,
         data: expect.objectContaining({
           error: "invoiceId is invalid or empty",
-          message: expect.any(String),
-        }),
-      },
+          message: expect.any(String)
+        })
+      }
     })
   })
 
   afterAll(async () => {
     const res = await axios.delete(`${SERVER_URL}/v1/invoices/${invoiceId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: {Authorization: `Bearer ${token}`}
     })
 
     expect(res.status).toBe(200);

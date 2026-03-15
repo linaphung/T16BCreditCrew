@@ -183,12 +183,13 @@ app.get('/v1/admin/invoices', authenticate, async (req, res) => {
     const invoices = await getAllInvoices(userId)
 
     res.status(200).json({invoices})
-  } catch (error) {
-    const err = error as Error
-    return res.status(400).json({
-      error: err.name,
-      message: err.message
-    })
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      return res.status(500).json({
+        error: err.name,
+        message: "Internal error (unexpected failure)."
+      })
+    }
   }
 })
 
