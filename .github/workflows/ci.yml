@@ -29,6 +29,11 @@ jobs:
       - name: checkout repo
         uses: actions/checkout@v4
 
+      - name: Set up .env file
+        run: |
+          echo "MONGODB_URI=${{ secrets.MONGODB_URI }}" >> .env
+          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+
       - name: node.js
         uses: actions/setup-node@v4
         with:
