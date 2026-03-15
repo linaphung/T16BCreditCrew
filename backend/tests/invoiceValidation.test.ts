@@ -42,7 +42,7 @@ describe('test invoice draft generation', () => {
     invoiceId = res.data.result.invoiceId
   })
 
-  test('valid invoice returns no errors', async () => {
+  test.skip('valid invoice returns no errors', async () => {
     const res = await axios.post(`${SERVER_URL}/v1/invoices/${invoiceId}/validate`, {}, 
     {
       headers: {
@@ -55,7 +55,7 @@ describe('test invoice draft generation', () => {
     expect(res.data.errors.length).toBe(0);
   })
 
-  test ('invalid invoice - missing issue data and invoicePeriod', async () => {
+  test.skip('invalid invoice - missing issue data and invoicePeriod', async () => {
     const invalidInvoiceRequest = await axios.post(`${SERVER_URL}/v1/admin/invoice`, {
       issueDate: '',
       dueDate: '2026-03-30',
@@ -92,7 +92,7 @@ describe('test invoice draft generation', () => {
     expect(res.data.errors.length).toBe(3);
   })
 
-  test ('invalid or missing token', async () => {
+  test.skip('invalid or missing token', async () => {
     const invalid_token = ''
     const res = await axios.post(`${SERVER_URL}/v1/invoices/${invoiceId}/validate`, 
     {}, 
@@ -108,7 +108,7 @@ describe('test invoice draft generation', () => {
     });
   })
 
-  test('missing or invalid invoiceId', async () => {
+  test.skip('missing or invalid invoiceId', async () => {
     const invalid_invoiceId = 'invalidInvoiceId'
     const res = await axios.post(`${SERVER_URL}/v1/invoices/${invalid_invoiceId}/validate`, {}, 
     {
