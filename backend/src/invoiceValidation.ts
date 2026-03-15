@@ -42,7 +42,12 @@ export const validateInvoiceHelper = (xmlString: string) => {
 }
 
 export const validateInvoice = async(invoiceId: string, userId: string) => {
-  const invoice = await Invoice.findOne({ _id: invoiceId, userId })
+  let invoice;
+  try {
+    invoice = await Invoice.findOne({ _id: invoiceId, userId })
+  } catch {
+    throw new InvoiceNotFoundError('Invoice does not exist')
+  }
   if (!invoice) {
     throw new InvoiceNotFoundError('Invoice does not exist')
   }

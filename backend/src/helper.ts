@@ -98,10 +98,10 @@ export const generateXMLString = (invoiceData: InvoiceData, invoiceId: string) =
 
     .ele('cac:InvoicePeriod')
       .ele('cbc:StartDate')
-        .txt(invoiceData.invoicePeriod.invoiceStartDate)
+        .txt(invoiceData.invoicePeriod?.invoiceStartDate ?? '')
       .up()
       .ele('cbc:EndDate')
-        .txt(invoiceData.invoicePeriod.invoiceEndDate)
+        .txt(invoiceData.invoicePeriod?.invoiceEndDate ?? '')
       .up()
     .up()
 

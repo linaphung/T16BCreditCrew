@@ -1,4 +1,4 @@
-import axios, { AxiosError } from 'axios'
+import axios from 'axios'
 // test for no token
 const PORT = process.env.PORT || 3000;
 const SERVER_URL = `http://localhost:${PORT}`;
@@ -46,39 +46,39 @@ describe('test invoice draft generation', () => {
   })
 
   test('missing or invalid token prevent draft invoice generation', async () => {
-    try {
-      await axios.post(`${SERVER_URL}/v1/admin/invoice`, {
-        issueDate: '2026-03-15',
-        invoicePeriod: {
-            invoiceStartDate: '2026-03-01',
-            invoiceEndDate: '2026-03-20',
-        },
-        dueDate: '2026-03-30',
-        paymentTerms: 'Payment due within 30 days',
-        buyer: 'ABC test',
-        seller: 'test business',
-        currency: 'AUD',
-        orderLines: [
-          {
-            lineId: '1',
-            itemName: 'brick',
-            quantity: 100,
-            unitPrice: 10,
-          }
-        ],
-      }, 
-      {
-        headers: {
-          Authorization: `Bearer ${token}`
+    const invalid_token = ''
+    const res = await axios.post(`${SERVER_URL}/v1/admin/invoice`, {
+      issueDate: '2026-03-15',
+      invoicePeriod: {
+          invoiceStartDate: '2026-03-01',
+          invoiceEndDate: '2026-03-20',
+      },
+      dueDate: '2026-03-30',
+      paymentTerms: 'Payment due within 30 days',
+      buyer: 'ABC test',
+      seller: 'test business',
+      currency: 'AUD',
+      orderLines: [
+        {
+          lineId: '1',
+          itemName: 'brick',
+          quantity: 100,
+          unitPrice: 10,
         }
-      })       
+      ],
+    }, 
+    {
+      headers: {
+        Authorization: `Bearer ${invalid_token}`
+      },
+      validateStatus: () => true
+    })       
+    expect(res.status).toBe(400);
+    expect(res.data).toEqual({
+      error: 'INVALID_TOKEN',
+      message: 'Token is invalid or empty'
+    });
 
-    } catch (error: unknown) {
-      const err = error as AxiosError
-      expect(err.response?.data).toEqual({
-        error: 'INVALID_TOKEN',
-        message: 'Token is invalid or empty'
-      });
-    }
+
   })
 })

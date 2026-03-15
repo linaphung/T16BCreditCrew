@@ -4,6 +4,6 @@ export default {
   maxWorkers: 1,
   collectCoverageFrom: [
     "src/**/*.ts",
-    "!src/server.ts"  // exclude entry point if you want
+    "!src/server.ts"
   ]
 };

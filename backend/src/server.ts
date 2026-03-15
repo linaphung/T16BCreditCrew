@@ -8,6 +8,7 @@ import { authenticate } from '../middleware/authenticate.js'
 import { UserLogin, UserRegister} from './types.js'
 import { extractBearerToken } from './helper.js'
 import { InvoiceNotFoundError } from './errors.js'
+import { validateInvoice } from './invoiceValidation.js'
 
 dotenv.config()
 const app = express()
@@ -298,7 +299,22 @@ app.put('/v1/invoices/:invoiceId', authenticate, async (req, res) => {
 })
 
 // validate a invoice
-app.post('/v1/invoices/:invoiceId/validate', async () => {
+app.post('/v1/invoices/:invoiceId/validate',authenticate,  async (req: Request, res: Response) => {
+  try {
+    const invoiceId = req.params.invoiceId as string
+    const user = req.user
+    const userId = user!.adminId
+    const result = await validateInvoice(invoiceId, userId)
+    return res.status(200).json(result)
+  } catch (error) {
+    const err = error as Error & { statusCode?: number }
+    const statusCode = err.statusCode || 500
+    const message = err.message || 'Server Error'
+    return res.status(statusCode).json({
+      error: err.name,
+      message: message,
+    })
+  }
 
 })
 
