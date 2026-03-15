@@ -1,5 +1,5 @@
 import validator from 'validator';
-import { InvalidPasswordError, InvalidEmailError, UserNotFound, InvalidTokenError } from '../src/errors.js';
+import { InvalidPasswordError, InvalidEmailError, UserNotFound, InvalidTokenError, EmailExistsError } from '../errors.js';
 import User from '../models/User.js';
 import jwt from 'jsonwebtoken'
 import { Request } from 'express'
@@ -13,7 +13,7 @@ export async function validateEmail(email: string) {
 
   const existingUser = await User.findOne({email: normaliseEmail})
   if (existingUser)
-    throw new InvalidEmailError('Email is already in use')
+    throw new EmailExistsError('Email is already in use')
 }
 
 export function validatePassword(password: string) {

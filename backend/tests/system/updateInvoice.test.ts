@@ -1,5 +1,5 @@
 import axios from "axios"
-import { GeneratedInvoice } from "../src/types.js";
+import { GeneratedInvoice } from "../../src/types.js";
 // test for no token
 const PORT = process.env.PORT || 3000;
 const SERVER_URL = `http://localhost:${PORT}`;
