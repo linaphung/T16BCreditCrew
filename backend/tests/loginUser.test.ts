@@ -25,25 +25,25 @@ describe('POST /v1/admin/login', () => {
   })
 
 
-  test('INCORRECT_EMAIL_PASSWORD, password is incorrect', async () => {
+  test('INVALID_PASSWORD_OR_EMAIL, password is incorrect', async () => {
     const res = await axios.post(`${SERVER_URL}/v1/admin/login`, {
       email,
       password: 'wrongpassword1'
     }, { validateStatus: () => true })
 
     expect(res.status).toBe(400)
-    expect(res.data.error).toBe('INCORRECT_EMAIL_PASSWORD')
+    expect(res.data.error).toBe('INVALID_PASSWORD_OR_EMAIL')
   })
 
 
-  test('INCORRECT_EMAIL_PASSWORD, email is not registered', async () => {
+  test('INVALID_PASSWORD_OR_EMAIL, email is not registered', async () => {
     const res = await axios.post(`${SERVER_URL}/v1/admin/login`, {
       email: 'notregistered@gmail.com',
       password
     }, { validateStatus: () => true })
 
     expect(res.status).toBe(400)
-    expect(res.data.error).toBe('INCORRECT_EMAIL_PASSWORD')
+    expect(res.data.error).toBe('INVALID_PASSWORD_OR_EMAIL')
   })
 
 
