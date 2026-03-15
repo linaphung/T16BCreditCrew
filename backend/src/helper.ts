@@ -3,7 +3,7 @@ import { InvalidPasswordError, InvalidEmailError, UserNotFound, InvalidTokenErro
 import User from '../models/User.js';
 import jwt from 'jsonwebtoken'
 import { Request } from 'express'
-import { InvoiceData, OrderLine } from '../src/types.js';
+import { InvoiceData, OrderLine } from './types.js';
 import {create} from 'xmlbuilder2'
 
 export async function validateEmail(email: string) {

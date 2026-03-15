@@ -34,14 +34,10 @@ export interface UserLogout {
   code: number;
 }
 
-// scenario: only want to change one label and not all
-// does function implementation always have to take in three parameters
-// what happens if a parameter is empty? will it throw error even though
-// user wanted to only change one label e.g. password 
 export interface UserUpdate {
-  email: string;
-  password: string;
-  businessName: string;
+  email?: string;
+  password?: string;
+  businessName?: string;
 }
 
 export interface UserDetails {
