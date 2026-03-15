@@ -1,7 +1,7 @@
 import Invoice from '../models/Invoice.js'
 import {InvoiceData} from './types.js'
 import {generateXMLString} from './helper.js'
-import {InvoiceNotFoundError } from '../errors.js'
+import {InvoiceNotFoundError } from './errors.js'
 import path from 'path'
 import libxml from 'libxmljs2'
 import fs from 'fs'

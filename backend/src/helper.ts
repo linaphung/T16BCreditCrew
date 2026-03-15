@@ -1,9 +1,9 @@
 import validator from 'validator';
-import { InvalidPasswordError, InvalidEmailError, UserNotFound, InvalidTokenError, EmailExistsError } from '../errors.js';
+import { InvalidPasswordError, InvalidEmailError, UserNotFound, InvalidTokenError, EmailExistsError } from './errors.js';
 import User from '../models/User.js';
 import jwt from 'jsonwebtoken'
 import { Request } from 'express'
-import { InvoiceData, OrderLine } from '../src/types.js';
+import { InvoiceData, OrderLine } from './types.js';
 import {create} from 'xmlbuilder2'
 
 export async function validateEmail(email: string) {

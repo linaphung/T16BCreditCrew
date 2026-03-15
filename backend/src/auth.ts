@@ -2,8 +2,8 @@ import User from '../models/User.js'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import { validatePassword, validateEmail, getUser, validateToken, getUserFromToken } from './helper.js'
-import { RegisterResponse, UserDetails, UserLoginResponse, UserLogout } from './types.js'
-import { MissingFieldError, IncorrectEmailPasswordError, InvalidTokenError } from '../errors.js'
+import { RegisterResponse, UserDetails, UserLoginResponse, UserLogout, UserUpdate } from './types.js'
+import { MissingFieldError, IncorrectEmailPasswordError, InvalidTokenError, UserNotFound, InvalidBusinessNameError } from './errors.js'
 
 //!                          adminRegisterUser
 /* 
@@ -108,4 +108,48 @@ export const adminUserDetails = async (
     businessName: user.businessName,
     abn: user.abn
   }
+}
+
+//!                          adminEditUserDetails
+/**
+ * Updates a user's details
+ * @param token string
+ * @param object optionally can input email, password, businessName or all
+ * @returns empty object
+ */
+export const adminUserDetailsUpdate = async(
+  token: string,
+  updates: UserUpdate
+): Promise<UserUpdate> => {
+  const user = await getUserFromToken(token)
+
+  if (!user) {
+    throw new UserNotFound('User does not exist')
+  }
+
+  const { email, businessName, password } = updates
+
+  if (email !== undefined) {
+    const normalisedEmail = email.trim().toLowerCase()
+    if (normalisedEmail !== user.email) {
+      await validateEmail(normalisedEmail)
+      user.email = normalisedEmail
+    }
+  }
+
+  if (businessName !== undefined) {
+    if (businessName.trim().length === 0) {
+      throw new InvalidBusinessNameError('Business name cannot be empty')
+    }
+    user.businessName = businessName.trim()
+  }
+
+  if (password !== undefined) {
+    validatePassword(password)
+    user.password = await bcrypt.hash(password, 10)
+  }
+
+  await user.save()
+
+  return {}
 }

@@ -34,6 +34,15 @@ export class InvalidPasswordError extends Error {
   }
 }
 
+export class InvalidBusinessNameError extends Error {
+  statusCode: number
+  constructor(message: string, statusCode: number = 400) {
+    super(message)
+    this.name = 'INVALID_BUSINESS_NAME'
+    this.statusCode = statusCode
+  }
+}
+
 export class IncorrectEmailPasswordError extends Error {
   statusCode: number
   constructor(message: string, statusCode: number = 400) {
