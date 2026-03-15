@@ -18,7 +18,17 @@ Authorization: Bearer YOUR_TOKEN
 ```bash
 curl -X POST https://api.acme.com/v1/auth/register \
   -H "Content-Type: application/json" \
-  -d '{ "email": "jane@example.com", "password": "••••••••" }'
+  -d '{
+    "email": "jane@example.com",
+    "businessName": "Jane's Design Co.",
+    "abn": "12345678901",
+    "password": "••••••••"
+  }'
+```
+
+Response:
+```json
+{ "code": 200, "userId": "64f1a2b3c4d5e6f7a8b9c0d1" }
 ```
 
 ### Login
