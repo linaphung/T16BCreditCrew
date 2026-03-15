@@ -1,8 +1,8 @@
-# T16BCreditCrew
+# Invoice Generation AIP by T16BCreditCrew
 
+A simple API to generate a UBL invoice from user provided data.
 
-
-## Getting started
+## Overview
 
 To make it easy for you to get started with GitLab, here's a list of recommended next steps.
 
