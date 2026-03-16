@@ -74,7 +74,7 @@ Get up and running in 3 steps.
 
 ### 1. Register an account
 ```bash
-curl -X POST https://api.com/v1/admin/auth/register \
+curl -X POST https://t16bcreditcrew-86oh.onrender.com/v1/admin/auth/register \
   -H "Content-Type: application/json" \
   -d '{
     "email": "jane@example.com",
@@ -86,7 +86,7 @@ curl -X POST https://api.com/v1/admin/auth/register \
 
 ### 2. Log in to get a token
 ```bash
-curl -X POST https://api.com/v1/admin/auth/login \
+curl -X POST https://t16bcreditcrew-86oh.onrender.com/v1/admin/auth/login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "jane@example.com",
@@ -100,7 +100,7 @@ Response:
 
 ### 3. Generate your first invoice
 ```bash
-curl -X POST https://api.com/v1/admin/order/draft-invoice \
+curl -X POST https://t16bcreditcrew-86oh.onrender.com/v1/admin/order/draft-invoice \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
