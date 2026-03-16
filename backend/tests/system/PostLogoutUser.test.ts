@@ -2,7 +2,7 @@ import axios from 'axios'
 const PORT = process.env.PORT || 3000;
 const SERVER_URL = `http://localhost:${PORT}`;
 
-describe('POST /v1/admin/logout', () => {
+describe('test user logout', () => {
   let token: string
 
   beforeEach(async () => {

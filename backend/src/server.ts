@@ -11,6 +11,7 @@ import { InvoiceNotFoundError } from './errors.js'
 import { validateInvoice } from './invoiceValidation.js'
 import multer from 'multer'
 
+
 dotenv.config()
 const app = express()
 app.use(express.json())
@@ -25,7 +26,7 @@ app.get('/', (req: Request, res: Response) => {
   res.send('Hello from Credit Crew')
 })
 
-// tests the health of the server and database
+// Basic liveness check
 app.get('/health', (req: Request, res: Response) => {
   res.status(200).json({ status: 'ok' })
 })
@@ -46,7 +47,8 @@ if (!MONGODB_URI) {
     })
 }
 
-// server route for adminRegisterUser
+// ─── Auth ─────────────────────────────────────────────────────────────────────
+
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 app.post('/v1/admin/auth/register', async (req: Request<{}, {}, UserRegister>, res: Response) => {
   try {
@@ -62,7 +64,6 @@ app.post('/v1/admin/auth/register', async (req: Request<{}, {}, UserRegister>, r
   }
 })
 
-// logs a registered user in
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 app.post('/v1/admin/login', async (req: Request<{}, {}, UserLogin>, res: Response) => {
   try {
@@ -78,11 +79,12 @@ app.post('/v1/admin/login', async (req: Request<{}, {}, UserLogin>, res: Respons
   }
 })
 
-// logs out user
+// Token is invalidated by the authenticate middleware — nothing extra needed here
 app.post('/v1/admin/logout', authenticate, async (req: Request, res: Response) => {
   return res.status(200).json({})
 })
 
+// ─── User ─────────────────────────────────────────────────────────────────────
 
 // update user details
 app.put('/v1/admin/user/details', authenticate, async (req: Request, res: Response) => {
@@ -122,8 +124,9 @@ app.get('/v1/admin/user/details', authenticate, async (req: Request, res: Respon
   }
 })
 
+// ─── Order upload ──────────────────────────────────────────────────────────────
 
-// upload order document
+// Validates and returns raw file contents — does not create an invoice
 app.post('/v1/admin/order/upload', authenticate, upload.single('file'), async (req: Request, res: Response) => {
   try {
     if (!req.file) {
@@ -137,8 +140,7 @@ app.post('/v1/admin/order/upload', authenticate, upload.single('file'), async (r
   }
 })
 
-// parse order document into draft invoice
-// parse order document and create draft invoice
+// Parses an order document (XML or JSON) and creates a draft invoice
 app.post('/v1/admin/order/parse', authenticate, upload.single('file'), async (req: Request, res: Response) => {
   try {
     if (!req.file) {
@@ -165,6 +167,8 @@ app.post('/v1/admin/order/parse', authenticate, upload.single('file'), async (re
   }
 })
 
+// ─── Invoices ─────────────────────────────────────────────────────────────────
+
 // generates a draft invoice
 app.post('/v1/admin/invoice', authenticate, async (req: Request, res: Response) => {
   try {
@@ -185,7 +189,7 @@ app.post('/v1/admin/invoice', authenticate, async (req: Request, res: Response) 
   }
 })
 
-// update status to finalised 
+// Locks the invoice and generates its UBL XML — cannot be edited after this
 app.put('/v1/admin/invoice/finalise/:invoiceId', authenticate, async (req: Request, res: Response) => {
   try {
     const invoiceId = req.params.invoiceId as string
@@ -204,6 +208,7 @@ app.put('/v1/admin/invoice/finalise/:invoiceId', authenticate, async (req: Reque
   }
 })
 
+// Returns the finalised invoice as a downloadable UBL XML file
 app.get('/v1/admin/invoice/:invoiceId/xml', authenticate, async (req: Request, res: Response) => {
   try {
     const invoiceId = req.params.invoiceId as string
@@ -346,7 +351,7 @@ app.put('/v1/invoices/:invoiceId', authenticate, async (req, res) => {
   }
 })
 
-// validate a invoice
+// Validates the invoice against the UBL 2.1 XSD schema and updates its status
 app.post('/v1/invoices/:invoiceId/validate',authenticate,  async (req: Request, res: Response) => {
   try {
     const invoiceId = req.params.invoiceId as string
@@ -363,7 +368,7 @@ app.post('/v1/invoices/:invoiceId/validate',authenticate,  async (req: Request, 
       message: message,
     })
   }
-
 })
+
 
 export default app

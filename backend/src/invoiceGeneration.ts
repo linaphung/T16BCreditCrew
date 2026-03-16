@@ -1,18 +1,14 @@
 import Invoice from '../models/Invoice.js'
 import { GeneratedInvoice, InvoiceData, DraftInvoiceInput, DeleteInvoiceResponse, InvoicePeriod } from './types.js'
-import { calculateLineExtension, generateXMLString} from './helper.js'
-import {InvoiceBadRequest, InvoiceNotFoundError, InvalidFileError } from './errors.js'
-import {validateInvoiceHelper} from './invoiceValidation.js' 
+import { calculateLineExtension, generateXMLString } from './helper.js'
+import { InvoiceBadRequest, InvoiceNotFoundError, InvalidFileError } from './errors.js'
+import { validateInvoiceHelper } from './invoiceValidation.js'
 import { XMLParser } from 'fast-xml-parser'
 
-
-//!                          uploadOrderDocument
-/*
-  Validates an uploaded order document
- * @param {Buffer} fileBuffer - the uploaded file buffer
- * @param {string} mimeType - the mime type of the file
- * @returns {string} - the raw file content as a string
-*/
+/**
+ * Validates the uploaded file is XML or JSON and returns its contents as a string.
+ * @throws {InvalidFileError} If the MIME type is not supported.
+ */
 export const uploadOrderDocument = (
   fileBuffer: Buffer,
   mimeType: string
@@ -22,24 +18,26 @@ export const uploadOrderDocument = (
     mimeType !== 'text/plain' &&
     mimeType !== 'application/xml' &&
     mimeType !== 'text/xml'
-  ) 
+  )
     throw new InvalidFileError('Invalid file format. Must be XML or JSON')
-  
+
   return { file: fileBuffer.toString() }
 }
 
-//!                          parseOrderDocument
-/*
-  Parses an uploaded UBL order document and creates a draft invoice
- * @param {Buffer} fileBuffer - the uploaded file buffer
- * @param {string} mimeType - the mime type of the file
- * @param {string} userId - the user's id
- * @param {string} issueDate - the issue date of the invoice
- * @param {string} dueDate - the due date of the invoice
- * @param {string} currency - the currency of the invoice
- * @param {InvoicePeriod} invoicePeriod - optional invoice period
- * @returns {GeneratedInvoice} - the created draft invoice
-*/
+/**
+ * Parses a UBL order document (JSON or XML) and creates a draft invoice.
+ * Extracts buyer, seller, payment terms, and line items from the order,
+ * then delegates to `generateInvoiceDraft`.
+ *
+ * @param fileBuffer    - The uploaded file contents.
+ * @param mimeType      - Used to determine how to parse the file.
+ * @param userId        - The ID of the user creating the invoice.
+ * @param issueDate     - Invoice issue date.
+ * @param dueDate       - Invoice due date.
+ * @param currency      - Currency code (e.g. 'AUD').
+ * @param invoicePeriod - Optional billing period.
+ * @throws {InvalidFileError} If the file is malformed or missing required fields.
+ */
 export const parseOrderDocument = async (
   fileBuffer: Buffer,
   mimeType: string,
@@ -75,6 +73,7 @@ export const parseOrderDocument = async (
   const seller = order?.SellerSupplierParty?.Party?.PartyName?.Name ?? order?.seller
   const paymentTerms = order?.PaymentTerms?.Note ?? order?.paymentTerms
 
+  // Handles both single line and array of lines
   const rawLines = order?.OrderLine ?? order?.orderLines
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const orderLines = (Array.isArray(rawLines) ? rawLines : [rawLines]).map((line: any) => ({
@@ -84,13 +83,11 @@ export const parseOrderDocument = async (
     unitPrice: Number(line?.LineItem?.Price?.PriceAmount ?? line?.unitPrice),
   }))
 
-  if (!buyer || !seller || !paymentTerms || !orderLines.length) {
+  if (!buyer || !seller || !paymentTerms || !orderLines.length)
     throw new InvalidFileError('Missing required fields in order document')
-  }
 
-  if (!issueDate || !dueDate || !currency) {
+  if (!issueDate || !dueDate || !currency)
     throw new InvalidFileError('Missing required fields: issueDate, dueDate, currency')
-  }
 
   return generateInvoiceDraft({
     issueDate,
@@ -104,14 +101,17 @@ export const parseOrderDocument = async (
   }, userId)
 }
 
-
+/**
+ * Creates a draft invoice record in the database.
+ * Payable amount is calculated from the provided order lines.
+ * XML is not generated until the invoice is finalised.
+ */
 export const generateInvoiceDraft = async (
   input: DraftInvoiceInput,
   userId: string,
 ): Promise<GeneratedInvoice> => {
-  // calculate payable amount for orderlines
   const payableAmount = calculateLineExtension(input.orderLines)
-  // create invoiceData
+
   const invoiceData: InvoiceData = {
     issueDate: input.issueDate,
     dueDate: input.dueDate,
@@ -119,13 +119,9 @@ export const generateInvoiceDraft = async (
     invoicePeriod: input.invoicePeriod ? {
       invoiceStartDate: input.invoicePeriod.invoiceStartDate,
       invoiceEndDate: input.invoicePeriod.invoiceEndDate,
-    }: undefined,
-    buyer: {
-      name: input.buyer
-    },
-    seller: {
-      name: input.seller
-    },
+    } : undefined,
+    buyer: { name: input.buyer },
+    seller: { name: input.seller },
     lineItems: input.orderLines,
     payableAmount: {
       currency: input.currency,
@@ -133,83 +129,86 @@ export const generateInvoiceDraft = async (
     }
   }
 
-  // add to database
   const invoice = await Invoice.create({
-    userId: userId,
+    userId,
     status: 'draft',
-    invoiceData: invoiceData,
-    // build string only when finalised
+    invoiceData,
     invoiceXMLString: ""
   })
-  // store invoice in data base
+
   return {
     invoiceId: invoice._id.toString(),
-    invoiceData: invoiceData,
+    invoiceData,
     invoiceStatus: 'draft',
-    // build XML string when draft is validated and finalised 
     invoiceXML: ""
   }
 }
 
-// finalises a valid invoice - cannot be editted
-export const finaliseInvoice = async(invoiceId: string, userId: string) => {
-  let invoice;
-  try {
-      invoice = await Invoice.findOne({ _id: invoiceId, userId })
-    } catch {
-      throw new InvoiceNotFoundError('Invoice does not exist')
-    }
-  if (!invoice) {
-    throw new InvoiceNotFoundError('Invoice does not exist')
-  }
-  if (invoice.status === 'finalised') {
-    throw new InvoiceBadRequest('Invoice is already finalised')
-  }
-
-  const invoiceData = invoice.invoiceData as InvoiceData
-
-  // update invoice xml 
-  const xmlString = generateXMLString(invoiceData, invoiceId)
-  // check if valid - after validation implemented
-  if (!validateInvoiceHelper(xmlString).valid) {
-    throw new InvoiceBadRequest('Invoice is not valid')
-  }
-  invoice.invoiceXMLString = xmlString
-  invoice.status = 'finalised'
-  await invoice.save()
-
-  return {invoiceId}
-
-}
-
-// exports invoice as xml document
-export const exportInvoice = async(invoiceId: string, userId: string) => {
+/**
+ * Finalises a draft invoice — generates and validates the UBL XML, then locks the record.
+ * Finalised invoices cannot be edited.
+ *
+ * @throws {InvoiceNotFoundError} If the invoice doesn't exist or belong to the user.
+ * @throws {InvoiceBadRequest}    If already finalised or XML validation fails.
+ */
+export const finaliseInvoice = async (invoiceId: string, userId: string) => {
   let invoice;
   try {
     invoice = await Invoice.findOne({ _id: invoiceId, userId })
   } catch {
     throw new InvoiceNotFoundError('Invoice does not exist')
   }
-  if (!invoice) {
+
+  if (!invoice)
+    throw new InvoiceNotFoundError('Invoice does not exist')
+
+  if (invoice.status === 'finalised')
+    throw new InvoiceBadRequest('Invoice is already finalised')
+
+  const invoiceData = invoice.invoiceData as InvoiceData
+  const xmlString = generateXMLString(invoiceData, invoiceId)
+
+  if (!validateInvoiceHelper(xmlString).valid)
+    throw new InvoiceBadRequest('Invoice is not valid')
+
+  invoice.invoiceXMLString = xmlString
+  invoice.status = 'finalised'
+  await invoice.save()
+
+  return { invoiceId }
+}
+
+/**
+ * Returns the UBL XML string for a finalised invoice.
+ * @throws {InvoiceNotFoundError} If the invoice doesn't exist or belong to the user.
+ * @throws {InvoiceBadRequest}    If the invoice hasn't been finalised yet.
+ */
+export const exportInvoice = async (invoiceId: string, userId: string) => {
+  let invoice;
+  try {
+    invoice = await Invoice.findOne({ _id: invoiceId, userId })
+  } catch {
     throw new InvoiceNotFoundError('Invoice does not exist')
   }
 
-  if (invoice.status !== 'finalised' || !invoice.invoiceXMLString) {
+  if (!invoice)
+    throw new InvoiceNotFoundError('Invoice does not exist')
+
+  if (invoice.status !== 'finalised' || !invoice.invoiceXMLString)
     throw new InvoiceBadRequest('Invoice has not been successfully finalised')
-  }
 
-  const invoiceXMLString = invoice.invoiceXMLString
-  // update invoice xml 
-  return invoiceXMLString
-
+  return invoice.invoiceXMLString
 }
 
+/**
+ * Fetches a single invoice by ID, scoped to the requesting user.
+ * @throws {InvoiceNotFoundError} If the invoice doesn't exist or belong to the user.
+ */
 export const getInvoice = async (invoiceId: string, userId: string): Promise<GeneratedInvoice> => {
   const invoice = await Invoice.findOne({ _id: invoiceId, userId })
 
-  if (!invoice) {
-    throw new InvoiceNotFoundError("Invoice not found")
-  }
+  if (!invoice)
+    throw new InvoiceNotFoundError('Invoice not found')
 
   return {
     invoiceId: invoice._id.toString(),
@@ -219,27 +218,35 @@ export const getInvoice = async (invoiceId: string, userId: string): Promise<Gen
   }
 }
 
+/**
+ * Returns all invoices belonging to the given user.
+ */
 export const getAllInvoices = async (userId: string): Promise<GeneratedInvoice[]> => {
-  const invoices = await Invoice.find({userId})
+  const invoices = await Invoice.find({ userId })
 
-  return invoices.map(invoice => {
-    return {
-      invoiceId: invoice._id.toString(),
-      invoiceStatus: invoice.status,
-      invoiceData: invoice.invoiceData as InvoiceData,
-      invoiceXML: invoice.invoiceXMLString || ""
-    }
-  })
+  return invoices.map(invoice => ({
+    invoiceId: invoice._id.toString(),
+    invoiceStatus: invoice.status,
+    invoiceData: invoice.invoiceData as InvoiceData,
+    invoiceXML: invoice.invoiceXMLString || ""
+  }))
 }
 
-export const updateInvoice = async (invoiceId: string, userId: string, updatedFields: Partial<InvoiceData>): Promise<GeneratedInvoice> => {
+/**
+ * Merges updated fields into an existing draft invoice and saves it.
+ * @throws {InvoiceNotFoundError} If the invoice doesn't exist or belong to the user.
+ */
+export const updateInvoice = async (
+  invoiceId: string,
+  userId: string,
+  updatedFields: Partial<InvoiceData>
+): Promise<GeneratedInvoice> => {
   const invoice = await Invoice.findOne({ _id: invoiceId, userId })
 
-  if (!invoice) {
-    throw new InvoiceNotFoundError("Invoice not found")
-  }
+  if (!invoice)
+    throw new InvoiceNotFoundError('Invoice not found')
 
-  invoice.invoiceData = Object.assign({}, invoice.invoiceData, updatedFields);
+  invoice.invoiceData = Object.assign({}, invoice.invoiceData, updatedFields)
   await invoice.save()
 
   return {
@@ -250,22 +257,18 @@ export const updateInvoice = async (invoiceId: string, userId: string, updatedFi
   }
 }
 
-//!                          invoiceDelete
-/* 
-  Deletes an invoice
- * @param {string} invoiceId - The ID of thje invoice
- * @param {string} userId - For authentication 
-*/
+/**
+ * Deletes an invoice, scoped to the requesting user.
+ * @throws {InvoiceNotFoundError} If no matching invoice is found.
+ */
 export const deleteInvoice = async (
-  invoiceId: string, 
+  invoiceId: string,
   userId: string
 ): Promise<DeleteInvoiceResponse> => {
-  
-  const result = await Invoice.deleteOne({ _id: invoiceId, userId });
-  
-  if (result.deletedCount === 0) {
-    throw new InvoiceNotFoundError("Invoice not found");
-  }
-  
-  return {};
-};
+  const result = await Invoice.deleteOne({ _id: invoiceId, userId })
+
+  if (result.deletedCount === 0)
+    throw new InvoiceNotFoundError('Invoice not found')
+
+  return {}
+}

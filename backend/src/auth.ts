@@ -5,63 +5,63 @@ import { validatePassword, validateEmail, getUser, validateToken, getUserFromTok
 import { RegisterResponse, UserDetails, UserLoginResponse, UserLogout, UserUpdate } from './types.js'
 import { MissingFieldError, IncorrectEmailPasswordError, InvalidTokenError, UserNotFound, InvalidBusinessNameError } from './errors.js'
 
-//!                          adminRegisterUser
-/* 
-  Register a new user
- * @param {string} email - email to register under user
- * @param {string} businessName - name of business
- * @param {string} abn - unique 11 digit identifier 
- * @param {string} password - chosen password
- * @returns {SessionId} - returns object with user id
-*/
+/**
+ * Register a new user.
+ * Validates fields, hashes the password, and saves the user to the database.
+ *
+ * @param email        - Must be unique and correctly formatted.
+ * @param businessName - Display name of the business.
+ * @param abn          - 11-digit Australian Business Number.
+ * @param password     - Plaintext password (hashed before storage).
+ * @returns The new user's MongoDB `_id`.
+ * @throws {MissingFieldError} If any field is absent.
+ */
 export const adminRegisterUser = async (
-  email: string, 
-  businessName: string, 
-  abn: string, 
+  email: string,
+  businessName: string,
+  abn: string,
   password: string
 ): Promise<RegisterResponse> => {
-  if (!email || !businessName || !abn|| !password)
+  if (!email || !businessName || !abn || !password)
     throw new MissingFieldError('Missing required fields')
-  
-  // error checks email format and if in use, and if password valid
+
   await validateEmail(email)
   validatePassword(password)
   const hashedPassword = await bcrypt.hash(password, 10)
 
-  // adds user to database
   const user = await User.create({
-    email: email,
-    businessName: businessName,
-    abn: abn,
-    password: hashedPassword
+    email,
+    businessName,
+    abn,
+    password: hashedPassword,
   })
-  // return user id 
-  // mongoDB automatically creates a unique id (_id) automatically for User
+
   return { code: 200, userId: user._id.toString() }
 }
 
 
-//!                          adminAuthLogin
-/* 
-  Logs in register user
- * @param {string} email - user's registered email
- * @param {string} password - user's registered password
- * @returns {SessionId} - returns object with user id
-*/
+/**
+ * Log in a registered user.
+ * On success, signs a 1-hour JWT and appends it to the user's token list.
+ *
+ * @param email    - The user's registered email.
+ * @param password - Plaintext password to verify against the stored hash.
+ * @returns The user's `_id` and a signed JWT.
+ * @throws {MissingFieldError}           If either field is absent.
+ * @throws {IncorrectEmailPasswordError} If credentials don't match.
+ */
 export const adminAuthLogin = async (
   email: string,
   password: string
 ): Promise<UserLoginResponse> => {
-  if (!email || !password) 
+  if (!email || !password)
     throw new MissingFieldError('Email and password are required')
-  
-  // checks if password is correct for registered email 
+
   const user = await getUser(email)
-  const passwordMatchUser = user && await bcrypt.compare(password, user.password)
-  if (!passwordMatchUser) 
+  const passwordMatch = user && await bcrypt.compare(password, user.password)
+  if (!passwordMatch)
     throw new IncorrectEmailPasswordError('Incorrect email or password')
 
-  // creates a token as user has been authenticated
   const token = jwt.sign(
     { adminId: user._id.toString() },
     process.env.JWT_SECRET as string,
@@ -75,11 +75,13 @@ export const adminAuthLogin = async (
 }
 
 
-//!                          adminAuthLogout
-/* 
-  Logs out register user
- * @returns {} - empty object 
-*/
+/**
+ * Log out the current user.
+ * Validates the token — the caller should discard it after this call.
+ *
+ * @param token - The JWT issued at login.
+ * @throws {InvalidTokenError} If the token is missing or invalid.
+ */
 export const adminAuthLogout = async (
   token: string
 ): Promise<UserLogout> => {
@@ -89,48 +91,53 @@ export const adminAuthLogout = async (
   return { code: 200 }
 }
 
-//!                          adminUserDetails
+
 /**
- * Gets a users details
- * @param token string
- * @returns object of email, buisnessName and abn
+ * Get the authenticated user's profile details.
+ * Returns email, business name, and ABN — password hash is excluded.
+ *
+ * @param token - A valid JWT.
+ * @throws {InvalidTokenError} If the token is missing or invalid.
  */
 export const adminUserDetails = async (
   token: string
 ): Promise<UserDetails> => {
-  if (!token || !validateToken(token)) {
+  if (!token || !validateToken(token))
     throw new InvalidTokenError('Token is invalid')
-  }
 
   const user = await getUserFromToken(token)
   return {
     email: user.email,
     businessName: user.businessName,
-    abn: user.abn
+    abn: user.abn,
   }
 }
 
-//!                          adminEditUserDetails
+
 /**
- * Updates a user's details
- * @param token string
- * @param object optionally can input email, password, businessName or all
- * @returns empty object
+ * Update the authenticated user's profile.
+ * All fields are optional — only provided fields are updated.
+ * Emails are normalised (trimmed + lowercased) and checked for uniqueness.
+ *
+ * @param token   - A valid JWT.
+ * @param updates - Any of: `email`, `businessName`, `password`.
+ * @throws {UserNotFound}             If no user matches the token.
+ * @throws {InvalidBusinessNameError} If `businessName` is blank.
  */
-export const adminUserDetailsUpdate = async(
+export const adminUserDetailsUpdate = async (
   token: string,
   updates: UserUpdate
 ): Promise<UserUpdate> => {
   const user = await getUserFromToken(token)
 
-  if (!user) {
+  if (!user)
     throw new UserNotFound('User does not exist')
-  }
 
   const { email, businessName, password } = updates
 
   if (email !== undefined) {
     const normalisedEmail = email.trim().toLowerCase()
+    // Only re-validate if the address has actually changed
     if (normalisedEmail !== user.email) {
       await validateEmail(normalisedEmail)
       user.email = normalisedEmail
@@ -138,9 +145,8 @@ export const adminUserDetailsUpdate = async(
   }
 
   if (businessName !== undefined) {
-    if (businessName.trim().length === 0) {
+    if (businessName.trim().length === 0)
       throw new InvalidBusinessNameError('Business name cannot be empty')
-    }
     user.businessName = businessName.trim()
   }
 
@@ -150,6 +156,5 @@ export const adminUserDetailsUpdate = async(
   }
 
   await user.save()
-
   return {}
 }
