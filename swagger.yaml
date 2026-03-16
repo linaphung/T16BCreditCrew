@@ -456,7 +456,7 @@ paths:
                     code: 'INVALID_ABN'
                     error: 'ABN must be 11 digits and unregistered in our database.'
 
-  /v1/admin/auth/login:
+  /v1/admin/login:
     post:
       tags: 
         - 'Account Creation and Management'
@@ -513,7 +513,7 @@ paths:
   #                 business_details:
   #                   type: object
 
-  /v1/admin/auth/logout:
+  /v1/admin/logout:
     post:
       tags: 
         - 'Account Creation and Management'
