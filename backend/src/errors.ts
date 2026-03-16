@@ -78,11 +78,21 @@ export class InvoiceBadRequest extends Error {
     this.statusCode = statusCode
   }
 }
+
 export class InvoiceNotFoundError extends Error {
   statusCode: number
   constructor(message: string = 'Invoice not found', statusCode: number = 404) {
     super(message)
     this.name = 'INVOICE_NOT_FOUND'
+    this.statusCode = statusCode
+  }
+}
+
+export class InvalidFileError extends Error {
+  statusCode: number
+  constructor(message: string, statusCode: number = 400) {
+    super(message)
+    this.name = 'INVALID_FILE'
     this.statusCode = statusCode
   }
 }

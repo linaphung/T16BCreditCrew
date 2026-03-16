@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Order>
+  <buyer>test buyer</buyer>
+  <seller>test business</seller>
+  <paymentTerms>payment due within 5 days</paymentTerms>
+  <orderLines>
+    <lineId>1</lineId>
+    <itemName>cat</itemName>
+    <quantity>100</quantity>
+    <unitPrice>10</unitPrice>
+  </orderLines>
+</Order>

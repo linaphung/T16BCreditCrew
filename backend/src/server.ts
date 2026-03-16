@@ -3,12 +3,13 @@ import { Request, Response } from 'express'
 import mongoose from 'mongoose'
 import dotenv from 'dotenv'
 import { adminAuthLogin, adminRegisterUser, adminUserDetails, adminUserDetailsUpdate } from './auth.js'
-import {generateInvoiceDraft, getAllInvoices, getInvoice, updateInvoice,deleteInvoice, finaliseInvoice, exportInvoice} from './invoiceGeneration.js'
+import {generateInvoiceDraft, getAllInvoices, getInvoice, updateInvoice,deleteInvoice, finaliseInvoice, exportInvoice, uploadOrderDocument} from './invoiceGeneration.js'
 import { authenticate } from '../middleware/authenticate.js'
 import { UserLogin, UserRegister} from './types.js'
 import { extractBearerToken } from './helper.js'
 import { InvoiceNotFoundError } from './errors.js'
 import { validateInvoice } from './invoiceValidation.js'
+import multer from 'multer'
 
 dotenv.config()
 const app = express()
@@ -16,6 +17,7 @@ app.use(express.json())
 
 const PORT = process.env.PORT || 3000;
 const MONGODB_URI = process.env.MONGODB_URI
+const upload = multer({ storage: multer.memoryStorage() })
 
 console.log('URI exists?', Boolean(MONGODB_URI))
 
@@ -121,9 +123,18 @@ app.get('/v1/admin/user/details', authenticate, async (req: Request, res: Respon
 })
 
 
-// uploads and parses a order document (combines parse and upload)
-app.post('/v1/admin/order/parse-order', async () => {
-
+// upload order document
+app.post('/v1/admin/order/upload', authenticate, upload.single('file'), async (req: Request, res: Response) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'MISSING_FILE', message: 'No file uploaded' })
+    }
+    const result = uploadOrderDocument(req.file.buffer, req.file.mimetype)
+    return res.status(200).json(result)
+  } catch (error) {
+    const err = error as Error
+    return res.status(400).json({ error: err.name, message: err.message })
+  }
 })
 
 // generates a draft invoice
