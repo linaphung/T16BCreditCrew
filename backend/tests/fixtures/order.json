@@ -1,0 +1,8 @@
+{
+  "buyer": "test buyer",
+  "seller": "test business",
+  "paymentTerms": "payment due within 5 days",
+  "orderLines": [
+    { "lineId": "1", "itemName": "cat", "quantity": 100, "unitPrice": 10 }
+  ]
+}
