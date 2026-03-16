@@ -28,7 +28,7 @@ const createForm = (filename: string, extraFields?: Record<string, string>) => {
   return form
 }
 
-describe('POST /v1/admin/order/upload', () => {
+describe('test upload order document', () => {
   let token: string
 
   beforeEach(async () => {

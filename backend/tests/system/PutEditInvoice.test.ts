@@ -4,7 +4,7 @@ import { GeneratedInvoice } from "../../src/types.js";
 const PORT = process.env.PORT || 3000;
 const SERVER_URL = `http://localhost:${PORT}`;
 
-describe("test getInvoice", () => {
+describe("test edit invoice", () => {
   let token: string;
   let invoiceId: string;
 

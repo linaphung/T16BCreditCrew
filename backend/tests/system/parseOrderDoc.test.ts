@@ -34,7 +34,7 @@ const parseFields = {
   currency: 'AUD'
 }
 
-describe('POST /v1/admin/order/parse', () => {
+describe('test parse order document', () => {
   let token: string
 
   beforeEach(async () => {

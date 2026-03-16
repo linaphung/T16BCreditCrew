@@ -3,7 +3,7 @@ import axios from "axios"
 const PORT = process.env.PORT || 3000;
 const SERVER_URL = `http://localhost:${PORT}`;
 
-describe("test getInvoice", () => {
+describe("test get specific invoice", () => {
   let token: string;
   let invoiceId: string;
 

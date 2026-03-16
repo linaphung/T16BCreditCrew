@@ -2,7 +2,7 @@ import axios from 'axios'
 const PORT = process.env.PORT || 3000;
 const SERVER_URL = `http://localhost:${PORT}`;
 
-describe('GET /v1/admin/user/details', () => {
+describe('test get user details', () => {
   let token: string
   let email: string
   const password = 'meowmeow123'
