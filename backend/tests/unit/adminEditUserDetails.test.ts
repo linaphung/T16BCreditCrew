@@ -19,8 +19,8 @@ beforeEach(() => {
   testUser.businessName = 'I Love Cats'
 })
 
-describe('adminUserDetailsUpdate', () => {
-  test('adminUserDetailsUpdate, successfully updates email', async () => {
+describe('adminEditUserDetails', () => {
+  test('successfully updates email', async () => {
     (getUserFromToken as jest.Mock).mockResolvedValue(testUser)
     ;(validateEmail as jest.Mock).mockResolvedValue(undefined)
 
@@ -30,7 +30,7 @@ describe('adminUserDetailsUpdate', () => {
     expect(testUser.email).toBe('new@gmail.com')
   })
 
-  test('adminUserDetailsUpdate, successfully updates businessName', async () => {
+  test('successfully updates businessName', async () => {
     (getUserFromToken as jest.Mock).mockResolvedValue(testUser)
 
     const result = await userDetailsUpdate('mock-token', { businessName: 'I Love Dogs' })
@@ -39,7 +39,7 @@ describe('adminUserDetailsUpdate', () => {
     expect(testUser.businessName).toBe('I Love Dogs')
   })
 
-  test('adminUserDetailsUpdate, successfully updates password', async () => {
+  test('successfully updates password', async () => {
     (getUserFromToken as jest.Mock).mockResolvedValue(testUser)
     ;(validatePassword as jest.Mock).mockReturnValue(undefined)
     ;(bcrypt.hash as jest.Mock).mockResolvedValue('newHashedPassword')
@@ -49,21 +49,21 @@ describe('adminUserDetailsUpdate', () => {
     expect(result.body).toStrictEqual({})
   })
 
-  test('adminUserDetailsUpdate, USER_NOT_FOUND user does not exist', async () => {
+  test('USER_DOES_NOT_EXIST, user does not exist', async () => {
     (getUserFromToken as jest.Mock).mockResolvedValue(null)
     const result = await userDetailsUpdate('mock-token', { businessName: 'I Love Dogs' })
-    expect(result.statusCode).toStrictEqual(400)
-    expect(result.body).toStrictEqual({ error: 'USER_NOT_FOUND', message: expect.any(String) })
+    expect(result.statusCode).toStrictEqual(404)
+    expect(result.body).toStrictEqual({ error: 'USER_DOES_NOT_EXIST', message: expect.any(String) })
   })
 
-  test('adminUserDetailsUpdate, INVALID_BUSINESS_NAME business name is empty', async () => {
+  test('INVALID_BUSINESS_NAME, business name is empty', async () => {
     (getUserFromToken as jest.Mock).mockResolvedValue(testUser)
     const result = await userDetailsUpdate('mock-token', { businessName: '   ' })
     expect(result.statusCode).toStrictEqual(400)
     expect(result.body).toStrictEqual({ error: 'INVALID_BUSINESS_NAME', message: expect.any(String) })
   })
 
-  test('adminUserDetailsUpdate, does not update email if same as current', async () => {
+  test('does not update email if same as current', async () => {
     (getUserFromToken as jest.Mock).mockResolvedValue(testUser)
     const result = await userDetailsUpdate('mock-token', { email: 'test@gmail.com' })
     expect(result.statusCode).toStrictEqual(200)
