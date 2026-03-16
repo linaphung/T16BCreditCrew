@@ -10,6 +10,9 @@ import { extractBearerToken } from './helper.js'
 import { InvoiceNotFoundError } from './errors.js'
 import { validateInvoice } from './invoiceValidation.js'
 import multer from 'multer'
+import swaggerUi from 'swagger-ui-express'
+import jsyaml from 'js-yaml'
+import fs from 'fs'
 
 
 dotenv.config()
@@ -19,6 +22,7 @@ app.use(express.json())
 const PORT = process.env.PORT || 3000;
 const MONGODB_URI = process.env.MONGODB_URI
 const upload = multer({ storage: multer.memoryStorage() })
+const swaggerDocument = jsyaml.load(fs.readFileSync('./swagger.yaml', 'utf-8'))
 
 console.log('URI exists?', Boolean(MONGODB_URI))
 
@@ -83,6 +87,8 @@ app.post('/v1/admin/login', async (req: Request<{}, {}, UserLogin>, res: Respons
 app.post('/v1/admin/logout', authenticate, async (req: Request, res: Response) => {
   return res.status(200).json({})
 })
+
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument as object))
 
 // ─── User ─────────────────────────────────────────────────────────────────────
 
