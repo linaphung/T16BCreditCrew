@@ -49,6 +49,7 @@ export const parseOrderDocument = async (
   currency: string,
   invoicePeriod?: InvoicePeriod
 ): Promise<GeneratedInvoice> => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let parsed: any
 
   if (mimeType === 'application/json' || mimeType === 'text/plain') {
@@ -75,6 +76,7 @@ export const parseOrderDocument = async (
   const paymentTerms = order?.PaymentTerms?.Note ?? order?.paymentTerms
 
   const rawLines = order?.OrderLine ?? order?.orderLines
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const orderLines = (Array.isArray(rawLines) ? rawLines : [rawLines]).map((line: any) => ({
     lineId: line?.LineItem?.ID ?? line?.lineId,
     itemName: line?.LineItem?.Item?.Name ?? line?.itemName,
