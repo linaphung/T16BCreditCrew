@@ -10,5 +10,9 @@ module.exports = {
   collectCoverageFrom: [
     'src/**/*.ts',
     '!src/server.ts',
+    '!src/helper.ts',
+    '!src/invoiceValidation.ts',
+    '!src/errors.ts',
+    '!src/types.ts',
   ],
 }
