@@ -3,7 +3,7 @@ import { Request, Response } from 'express'
 import mongoose from 'mongoose'
 import dotenv from 'dotenv'
 import { adminAuthLogin, adminRegisterUser, adminUserDetails, adminUserDetailsUpdate } from './auth.js'
-import {generateInvoiceDraft, getAllInvoices, getInvoice, updateInvoice,deleteInvoice, finaliseInvoice, exportInvoice, uploadOrderDocument} from './invoiceGeneration.js'
+import {generateInvoiceDraft, getAllInvoices, getInvoice, updateInvoice,deleteInvoice, finaliseInvoice, exportInvoice, uploadOrderDocument, parseOrderDocument} from './invoiceGeneration.js'
 import { authenticate } from '../middleware/authenticate.js'
 import { UserLogin, UserRegister} from './types.js'
 import { extractBearerToken } from './helper.js'
@@ -130,6 +130,34 @@ app.post('/v1/admin/order/upload', authenticate, upload.single('file'), async (r
       return res.status(400).json({ error: 'MISSING_FILE', message: 'No file uploaded' })
     }
     const result = uploadOrderDocument(req.file.buffer, req.file.mimetype)
+    return res.status(200).json(result)
+  } catch (error) {
+    const err = error as Error
+    return res.status(400).json({ error: err.name, message: err.message })
+  }
+})
+
+// parse order document into draft invoice
+// parse order document and create draft invoice
+app.post('/v1/admin/order/parse', authenticate, upload.single('file'), async (req: Request, res: Response) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'MISSING_FILE', message: 'No file uploaded' })
+    }
+    const { issueDate, dueDate, currency, invoicePeriod } = req.body
+    const user = req.user
+    const userId = user!.adminId
+
+    const result = await parseOrderDocument(
+      req.file.buffer,
+      req.file.mimetype,
+      userId,
+      issueDate,
+      dueDate,
+      currency,
+      invoicePeriod
+    )
+
     return res.status(200).json(result)
   } catch (error) {
     const err = error as Error
