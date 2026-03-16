@@ -104,6 +104,7 @@ export interface InvoicePeriod {
   invoiceStartDate: string,
   invoiceEndDate: string,
 }
+
 export interface InvoiceData {
   issueDate: string,
   dueDate: string,
