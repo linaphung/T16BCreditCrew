@@ -98,7 +98,7 @@ describe('test invoice draft generation', () => {
     })        
     expect(res.status).toBe(400)
     expect(res.data).toEqual({
-      error: 'Invoice_Bad_Request',
+      error: 'INVOICE_BAD_REQUEST',
       message: 'Invoice has not been successfully finalised'
     });
   })

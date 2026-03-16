@@ -74,7 +74,7 @@ export class InvoiceBadRequest extends Error {
   statusCode: number
   constructor(message: string, statusCode: number = 400) {
     super(message)
-    this.name = 'Invoice_Bad_Request'
+    this.name = 'INVOICE_BAD_REQUEST'
     this.statusCode = statusCode
   }
 }

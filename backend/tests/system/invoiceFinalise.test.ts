@@ -98,7 +98,7 @@ describe('test invoice draft generation', () => {
     })       
     expect(res2.status).toBe(400)
     expect(res2.data).toEqual({
-      error: 'Invoice_Bad_Request',
+      error: 'INVOICE_BAD_REQUEST',
       message: 'Invoice is already finalised'
     });
   })
@@ -125,7 +125,7 @@ describe('test invoice draft generation', () => {
     })       
     expect(res2.status).toBe(400)
     expect(res2.data).toEqual({
-      error: 'Invoice_Bad_Request',
+      error: 'INVOICE_BAD_REQUEST',
       message: 'Invoice is already finalised'
     });
   })
@@ -165,7 +165,7 @@ describe('test invoice draft generation', () => {
     })       
     expect(res.status).toEqual(400)
     expect(res.data).toEqual({
-      error: 'Invoice_Bad_Request',
+      error: 'INVOICE_BAD_REQUEST',
       message: 'Invoice is not valid'
     });
   })
