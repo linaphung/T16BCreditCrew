@@ -2,9 +2,7 @@ import express from 'express'
 import { Request, Response } from 'express'
 import mongoose from 'mongoose'
 import dotenv from 'dotenv'
-import swaggerJsdoc from 'swagger-jsdoc'
 import swaggerUi from 'swagger-ui-express'
-import { swaggerOptions } from './swagger.js'
 import { adminAuthLogin, adminRegisterUser, adminUserDetails, adminUserDetailsUpdate } from './auth.js'
 import {generateInvoiceDraft, getAllInvoices, getInvoice, updateInvoice,deleteInvoice, finaliseInvoice, exportInvoice, uploadOrderDocument, parseOrderDocument} from './invoiceGeneration.js'
 import { authenticate } from '../middleware/authenticate.js'
@@ -13,6 +11,8 @@ import { extractBearerToken } from './helper.js'
 import { InvoiceNotFoundError } from './errors.js'
 import { validateInvoice } from './invoiceValidation.js'
 import multer from 'multer'
+import * as yaml from 'js-yaml'
+import * as fs from 'fs'
 
 dotenv.config()
 const app = express()
@@ -22,8 +22,8 @@ const PORT = process.env.PORT || 3000;
 const MONGODB_URI = process.env.MONGODB_URI
 const upload = multer({ storage: multer.memoryStorage() })
 
-const swaggerSpec = swaggerJsdoc(swaggerOptions)
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))
+const swaggerDocument = yaml.load(fs.readFileSync('../../swagger.yaml', 'utf8'))
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument as object))
 
 console.log('URI exists?', Boolean(MONGODB_URI))
 
