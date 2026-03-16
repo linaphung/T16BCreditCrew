@@ -2,6 +2,9 @@ import express from 'express'
 import { Request, Response } from 'express'
 import mongoose from 'mongoose'
 import dotenv from 'dotenv'
+import swaggerJsdoc from 'swagger-jsdoc'
+import swaggerUi from 'swagger-ui-express'
+import { swaggerOptions } from './swagger.js'
 import { adminAuthLogin, adminRegisterUser, adminUserDetails, adminUserDetailsUpdate } from './auth.js'
 import {generateInvoiceDraft, getAllInvoices, getInvoice, updateInvoice,deleteInvoice, finaliseInvoice, exportInvoice, uploadOrderDocument, parseOrderDocument} from './invoiceGeneration.js'
 import { authenticate } from '../middleware/authenticate.js'
@@ -18,6 +21,9 @@ app.use(express.json())
 const PORT = process.env.PORT || 3000;
 const MONGODB_URI = process.env.MONGODB_URI
 const upload = multer({ storage: multer.memoryStorage() })
+
+const swaggerSpec = swaggerJsdoc(swaggerOptions)
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))
 
 console.log('URI exists?', Boolean(MONGODB_URI))
 
