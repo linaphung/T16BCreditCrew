@@ -7,7 +7,7 @@ jest.mock('../../src/helper.js')
 jest.mock('bcrypt')
 jest.mock('jsonwebtoken')
 
-const mockUser = {
+const testUser = {
   _id: { toString: () => '123' },
   email: 'test@gmail.com',
   password: 'hashedPassword',
@@ -22,7 +22,7 @@ beforeEach(() => {
 
 describe('adminAuthLogin', () => {
   test('valid login', async () => {
-    (getUser as jest.Mock).mockResolvedValue(mockUser)
+    (getUser as jest.Mock).mockResolvedValue(testUser)
     ;(bcrypt.compare as jest.Mock).mockResolvedValue(true)
     ;(jwt.sign as jest.Mock).mockReturnValue('mock-token')
 
@@ -51,7 +51,7 @@ describe('adminAuthLogin', () => {
   })
 
   test('INVALID_PASSWORD_OR_EMAIL, password is wrong', async () => {
-    (getUser as jest.Mock).mockResolvedValue(mockUser)
+    (getUser as jest.Mock).mockResolvedValue(testUser)
     ;(bcrypt.compare as jest.Mock).mockResolvedValue(false)
     const result = await login('test@gmail.com', 'wrongpassword')
     expect(result.statusCode).toStrictEqual(400)
