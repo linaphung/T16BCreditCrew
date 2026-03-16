@@ -53,9 +53,9 @@ Ensure the following are installed:
 ## Environment Variables
 Create a `.env` file in the project root with the following variables:
 
-MONGODB_URI=your_database_connection_string
-JWT_SECRET=your_secret_key
-PORT=3000
+  MONGODB_URI=your_database_connection_string
+  JWT_SECRET=your_secret_key
+  PORT=3000
 
 ## Installation
 1. Install dependencies using npm install
@@ -86,7 +86,7 @@ curl -X POST https://t16bcreditcrew-86oh.onrender.com/v1/admin/auth/register \
 
 ### 2. Log in to get a token
 ```bash
-curl -X POST https://t16bcreditcrew-86oh.onrender.com/v1/admin/auth/login \
+curl -X POST https://t16bcreditcrew-86oh.onrender.com/v1/admin/login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "jane@example.com",
@@ -100,7 +100,7 @@ Response:
 
 ### 3. Generate your first invoice
 ```bash
-curl -X POST https://t16bcreditcrew-86oh.onrender.com/v1/admin/order/draft-invoice \
+curl -X POST https://t16bcreditcrew-86oh.onrender.com/v1/admin/invoice \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -116,8 +116,8 @@ That's it — you're ready to start generating invoices.
 | Method | Endpoint | Description |
 |------|------|------|
 | POST | `/v1/admin/auth/register` | Register a new admin user |
-| POST | `/v1/admin/auth/login` | Log in and receive a JWT token |
-| POST | `/v1/admin/auth/logout` | Log out user and invalidate token |
+| POST | `/v1/admin/login` | Log in and receive a JWT token |
+| POST | `/v1/admin/logout` | Log out user and invalidate token |
 | GET | `/v1/admin/user/details` | Retrieve details of the authenticated admin |
 | PUT | `/v1/admin/user/details` | Update admin account information |
 
