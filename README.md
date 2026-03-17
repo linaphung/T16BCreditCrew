@@ -129,8 +129,8 @@ That's it — you're ready to start generating invoices.
 |------|------|------|
 | POST | `/v1/admin/order/upload` | Upload an order contract (XML or JSON) |
 | POST | `/v1/admin/order/parse` | Extract order details from uploaded order document |
-| POST | `/v1/admin/order/draft-invoice` | Generate a draft invoice from parsed order data |
-| POST | `/v1/invoices/generate` | Automatically generate and finalise a UBL invoice |
+| POST | `/v1/admin/invoice` | Generate a draft invoice from parsed order data |
+| POST | `/v1/invoices/finalise/{invoiceId}` | Automatically generate and finalise a UBL invoice |
 | GET | `/v1/admin/invoices` | Retrieve all invoices belonging to the authenticated user |
 | GET | `/v1/invoices/{invoiceId}` | Retrieve a specific invoice |
 | PUT | `/v1/invoices/{invoiceId}` | Edit invoice fields |
