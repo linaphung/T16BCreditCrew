@@ -648,7 +648,7 @@ paths:
               schema: 
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /v1/admin/order/draft-invoice:
+  /v1/admin/invoice:
     post:
       summary: Generate draft invoice
       description: Drafts an invoice from parsed Order Contract and user input. User is able to edit and validate invoice while in draft status.
@@ -674,18 +674,18 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse' 
                 
-  /v1/invoices/generate:
+  /v1/invoices/finalise/{invoiceId}:
     post:
       tags:
-        - 'Invoice Generation and Management'
+        - Invoice Generation and Management
       summary: Generate UBL Invoice from Order Contract.
       description: 'Automatically validates and finalises invoice, so it is ready to export'
-      requestBody: 
-        required: true
-        content: 
-          application/json: 
-            schema:
-              $ref: '#/components/schemas/InvoiceRequest'
+      parameters:
+        - in: path
+          name: invoiceId
+          required: true
+          schema:
+            $ref: '#/components/schemas/InvoiceId'
       responses:
         '200':
           description: Success.
@@ -694,28 +694,28 @@ paths:
               schema:
                 $ref: '#/components/schemas/GeneratedInvoice'
         '400':
-          description: Bad request (malformed, invalid parameters, or missing fields, invoice did not pass xsd schema validation).
+          description: 'Bad request (malformed, invalid parameters, or missing fields, invoice did not pass xsd schema validation).'
           content:
-            application/json: 
-              schema: 
+            application/json:
+              schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '401':
           description: Token is invalid or empty
           content:
-            application/json: 
-              schema: 
+            application/json:
+              schema:
                 $ref: '#/components/schemas/ErrorResponse'
-        '500': 
+        '500':
           description: Internal error (unexpected failure).
           content:
-            application/json: 
-              schema: 
+            application/json:
+              schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '503':
           description: Service unavailable (down for maintenance).
           content:
-            application/json: 
-              schema: 
+            application/json:
+              schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
   /v1/admin/invoices:
