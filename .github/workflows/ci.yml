@@ -24,6 +24,8 @@ jobs:
       MONGODB_URI: mongodb://127.0.0.1:27017/testdb
       JWT_SECRET: test-secret
       PORT: 3000
+      SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+      SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
 
     steps:
       - name: checkout repo
@@ -47,6 +49,12 @@ jobs:
 
       - name: start server
         run: npm start &
+        env:
+          MONGODB_URI: mongodb://127.0.0.1:27017/testdb
+          JWT_SECRET: test-secret
+          PORT: 3000
+          SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+          SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
 
       - name: wait for server
         run: sleep 5

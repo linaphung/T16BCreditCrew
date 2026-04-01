@@ -9,10 +9,12 @@ import { UserLogin, UserRegister} from './types.js'
 import { extractBearerToken } from './helper.js'
 import { InvoiceNotFoundError } from './errors.js'
 import { validateInvoice } from './invoiceValidation.js'
+import { emailInvoice } from './emailservice.js'
 import multer from 'multer'
 import swaggerUi from 'swagger-ui-express'
 import jsyaml from 'js-yaml'
 import fs from 'fs'
+import sgMail from '@sendgrid/mail';
 
 
 dotenv.config()
@@ -21,6 +23,7 @@ app.use(express.json())
 
 const PORT = process.env.PORT || 3000;
 const MONGODB_URI = process.env.MONGODB_URI
+sgMail.setApiKey(process.env.SENDGRID_API_KEY!)
 const upload = multer({ storage: multer.memoryStorage() })
 const swaggerDocument = jsyaml.load(fs.readFileSync('./swagger.yaml', 'utf-8'))
 
@@ -373,6 +376,26 @@ app.post('/v1/invoices/:invoiceId/validate',authenticate,  async (req: Request, 
       error: err.name,
       message: message,
     })
+  }
+})
+
+app.post('/v1/invoices/send-email/:invoiceId', authenticate, async (req: Request, res: Response) => {
+  try {
+    const invoiceId = req.params.invoiceId as string
+    const {email} = req.body
+    const user = req.user
+    const userId = user!.adminId
+    const result = await emailInvoice(invoiceId, userId, email)
+    return res.status(200).json(result)
+  } catch (error) {
+    const err = error as Error & { statusCode?: number }
+    const statusCode = err.statusCode || 500
+    const message = err.message || 'Server Error'
+    return res.status(statusCode).json({
+      error: err.name,
+      message: message,
+    })
+
   }
 })
 
