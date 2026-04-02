@@ -4,7 +4,7 @@ import { GeneratedInvoice } from "../../src/types.js";
 const PORT = process.env.PORT || 3000;
 const SERVER_URL = `http://localhost:${PORT}`;
 
-describe("test get all invoices", () => {
+describe("test get all invoices + filtering", () => {
   let token: string;
   let invoice1Id: string;
   let invoice2Id: string;
@@ -57,22 +57,80 @@ describe("test get all invoices", () => {
     invoice2Id = invoice2.data.result.invoiceId;
   })
 
-  test("get all invoices", async () => {
-    const res = await axios.get(`${SERVER_URL}/v1/admin/invoices`, {
-      headers: {Authorization: `Bearer ${token}`}
+  test("no filters returns all invoices", async () => {
+    const res = await axios.get(`${SERVER_URL}/v2/admin/invoices`, {
+      headers: { Authorization: `Bearer ${token}` }
     })
+    expect(res.status).toBe(200)
+    const ids = (res.data.invoices as GeneratedInvoice[]).map(i => i.invoiceId)
+    expect(ids).toContain(invoice1Id)
+    expect(ids).toContain(invoice2Id)
+  })
 
-    expect(res.status).toBe(200);
-    expect(Array.isArray(res.data.invoices)).toBe(true);
+  test("filter by buyer name", async () => {
+    const res = await axios.get(`${SERVER_URL}/v2/admin/invoices`, {
+      headers: { Authorization: `Bearer ${token}` },
+      params: { buyerName: "buyer_test1" }
+    })
+    expect(res.status).toBe(200)
+    const ids = (res.data.invoices as GeneratedInvoice[]).map(i => i.invoiceId)
+    expect(ids).toContain(invoice1Id)
+    expect(ids).not.toContain(invoice2Id)
+  })
 
-    const invoiceIds = (res.data.invoices as GeneratedInvoice[]).map(i => i.invoiceId);
+  test("filter by seller name", async () => {
+    const res = await axios.get(`${SERVER_URL}/v2/admin/invoices`, {
+      headers: { Authorization: `Bearer ${token}` },
+      params: { sellerName: "seller_test2" }
+    })
+    expect(res.status).toBe(200)
+    const ids = (res.data.invoices as GeneratedInvoice[]).map(i => i.invoiceId)
+    expect(ids).toContain(invoice2Id)
+    expect(ids).not.toContain(invoice1Id)
+  })
 
-    expect(invoiceIds).toEqual(
-      expect.arrayContaining([
-        invoice1Id,
-        invoice2Id,
-      ])
-    )
+  test("filter by status", async () => {
+    const res = await axios.get(`${SERVER_URL}/v2/admin/invoices`, {
+      headers: { Authorization: `Bearer ${token}` },
+      params: { status: "draft" }
+    })
+    expect(res.status).toBe(200)
+    const ids = (res.data.invoices as GeneratedInvoice[]).map(i => i.invoiceId)
+    expect(ids).toContain(invoice1Id)
+    expect(ids).toContain(invoice2Id)
+  })
+
+  test("filter by issue date range", async () => {
+    const res = await axios.get(`${SERVER_URL}/v2/admin/invoices`, {
+      headers: { Authorization: `Bearer ${token}` },
+      params: { issueDateFrom: "2026-03-01", issueDateTo: "2026-03-31" }
+    })
+    expect(res.status).toBe(200)
+    const ids = (res.data.invoices as GeneratedInvoice[]).map(i => i.invoiceId)
+    expect(ids).toContain(invoice1Id)
+    expect(ids).toContain(invoice2Id)
+  })
+
+  test("filter by due date range", async () => {
+    const res = await axios.get(`${SERVER_URL}/v2/admin/invoices`, {
+      headers: { Authorization: `Bearer ${token}` },
+      params: { dueDateFrom: "2026-03-01", dueDateTo: "2026-03-31" }
+    })
+    expect(res.status).toBe(200)
+    const ids = (res.data.invoices as GeneratedInvoice[]).map(i => i.invoiceId)
+    expect(ids).toContain(invoice1Id)
+    expect(ids).toContain(invoice2Id)
+  })
+
+  test("filter by both buyer and status", async () => {
+    const res = await axios.get(`${SERVER_URL}/v2/admin/invoices`, {
+      headers: { Authorization: `Bearer ${token}` },
+      params: { buyerName: "buyer_test1", status: "draft" }
+    })
+    expect(res.status).toBe(200)
+    const ids = (res.data.invoices as GeneratedInvoice[]).map(i => i.invoiceId)
+    expect(ids).toContain(invoice1Id)
+    expect(ids).not.toContain(invoice2Id)
   })
 
   afterAll(async () => {
@@ -110,7 +168,7 @@ describe("test get all invoices", () => {
     expect(emptyLogin.status).toBe(200);
     const emptyToken = emptyLogin.data.token
 
-    const res = await axios.get(`${SERVER_URL}/v1/admin/invoices`, {
+    const res = await axios.get(`${SERVER_URL}/v2/admin/invoices`, {
       headers: {
         Authorization: `Bearer ${emptyToken}`
       },

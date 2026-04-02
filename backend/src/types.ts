@@ -26,7 +26,7 @@ export interface UserLogin {
 
 export interface UserLoginResponse {
   code: number;
-  adminId: string; 
+  adminId: string;
   token: string;
 }
 
@@ -46,8 +46,8 @@ export interface UserDetails {
   abn: string;
 }
 
-export interface UploadOrderContract { 
-  file: string; 
+export interface UploadOrderContract {
+  file: string;
 }
 
 export interface Names {
@@ -60,7 +60,7 @@ export interface OrderLine {
   quantity: number;
   unitPrice: number;
 }
-  
+
 export interface ParseOrderContract {
   orderId: string;
   buyer: string;
@@ -122,6 +122,25 @@ export interface InvoiceData {
     amount: number
   }
 }
+
+export interface InvoiceFilters {
+  status?: string
+  buyerName?: string
+  sellerName?: string
+  issueDate?: {
+    from?: string;
+    to?: string
+  }
+  dueDate?: {
+    from?: string;
+    to?: string
+  }
+  invoicePeriod?: {
+    startDate?: string;
+    endDate?: string
+  }
+}
+
 // swagger schema for invoiceData has to be edited
 // interface for invoiceData has to be created
 export interface GeneratedInvoice {
@@ -142,11 +161,10 @@ export interface AuthUser {
 }
 
 declare global {
-// eslint-disable-next-line @typescript-eslint/no-namespace
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     interface Request {
       user?: AuthUser
     }
   }
 }
-

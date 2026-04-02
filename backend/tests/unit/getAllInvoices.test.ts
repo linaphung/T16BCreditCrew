@@ -24,14 +24,14 @@ beforeEach(() => {
 
 describe('getAllInvoices', () => {
   test('successfully gets all invoices', async () => {
-    (Invoice.find as jest.Mock).mockResolvedValue(testInvoices)
+    (Invoice.aggregate as jest.Mock).mockResolvedValue(testInvoices)
     const result = await getAllInv('user123')
     expect(result.statusCode).toStrictEqual(200)
     expect(result.body).toHaveLength(2)
   })
 
   test('returns empty array when no invoices exist', async () => {
-    (Invoice.find as jest.Mock).mockResolvedValue([])
+    (Invoice.aggregate as jest.Mock).mockResolvedValue([])
     const result = await getAllInv('user123')
     expect(result.statusCode).toStrictEqual(200)
     expect(result.body).toStrictEqual([])
