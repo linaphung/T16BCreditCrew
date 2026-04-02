@@ -1,5 +1,5 @@
 import Invoice from '../models/Invoice.js'
-import { GeneratedInvoice, InvoiceData, DraftInvoiceInput, DeleteInvoiceResponse, InvoicePeriod } from './types.js'
+import { GeneratedInvoice, InvoiceData, DraftInvoiceInput, DeleteInvoiceResponse, InvoicePeriod, InvoiceFilters } from './types.js'
 import { calculateLineExtension, generateXMLString } from './helper.js'
 import { InvoiceBadRequest, InvoiceNotFoundError, InvalidFileError } from './errors.js'
 import { validateInvoiceHelper } from './invoiceValidation.js'
@@ -220,9 +220,52 @@ export const getInvoice = async (invoiceId: string, userId: string): Promise<Gen
 
 /**
  * Returns all invoices belonging to the given user.
+ * invoice can optionally be filtered using certain parameters
  */
-export const getAllInvoices = async (userId: string): Promise<GeneratedInvoice[]> => {
-  const invoices = await Invoice.find({ userId })
+export const getAllInvoices = async (userId: string, filters?: InvoiceFilters): Promise<GeneratedInvoice[]> => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const match: Record<string, any> = { userId }
+
+  if (filters) {
+    const { status, buyerName, sellerName, issueDate, dueDate, invoicePeriod } = filters
+
+    if (status)
+      match.status = status
+
+    if (buyerName)
+      match["invoiceData.buyer.name"] = { $regex: buyerName, $options: "i" }
+
+    if (sellerName)
+      match["invoiceData.seller.name"] = { $regex: sellerName, $options: "i" }
+
+    if (issueDate?.from || issueDate?.to) {
+      match["invoiceData.issueDate"] = {}
+
+      if (issueDate.from)
+        match["invoiceData.issueDate"].$gte = issueDate.from
+
+      if (issueDate.to)
+        match["invoiceData.issueDate"].$lte = issueDate.to
+    }
+
+    if (dueDate?.from || dueDate?.to) {
+      match["invoiceData.dueDate"] = {}
+
+      if (dueDate.from)
+        match["invoiceData.dueDate"].$gte = dueDate.from
+
+      if (dueDate.to)
+        match["invoiceData.dueDate"].$lte = dueDate.to
+    }
+
+    if (invoicePeriod?.startDate)
+      match["invoiceData.invoicePeriod.invoiceStartDate"] = { $gte: invoicePeriod.startDate }
+
+    if (invoicePeriod?.endDate)
+      match["invoiceData.invoicePeriod.invoiceEndDate"] = { $lte: invoicePeriod.endDate }
+  }
+
+  const invoices = await Invoice.aggregate([{ $match: match }])
 
   return invoices.map(invoice => ({
     invoiceId: invoice._id.toString(),

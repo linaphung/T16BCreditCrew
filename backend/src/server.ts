@@ -5,7 +5,7 @@ import dotenv from 'dotenv'
 import { adminAuthLogin, adminRegisterUser, adminUserDetails, adminUserDetailsUpdate } from './auth.js'
 import {generateInvoiceDraft, getAllInvoices, getInvoice, updateInvoice,deleteInvoice, finaliseInvoice, exportInvoice, uploadOrderDocument, parseOrderDocument} from './invoiceGeneration.js'
 import { authenticate } from '../middleware/authenticate.js'
-import { UserLogin, UserRegister} from './types.js'
+import { InvoiceFilters, UserLogin, UserRegister} from './types.js'
 import { extractBearerToken } from './helper.js'
 import { InvoiceNotFoundError } from './errors.js'
 import { validateInvoice } from './invoiceValidation.js'
@@ -182,12 +182,12 @@ app.post('/v1/admin/order/parse', authenticate, upload.single('file'), async (re
 app.post('/v1/admin/invoice', authenticate, async (req: Request, res: Response) => {
   try {
     const draftinput = req.body
-    const user = req.user 
+    const user = req.user
     const userId = user!.adminId
     const result = await generateInvoiceDraft(draftinput, userId)
     return res.status(200).json({result})
   } catch (error) {
-     
+
     const err = error as Error & { statusCode?: number }
     const statusCode = err.statusCode || 500
     const message = err.message || 'Server Error'
@@ -202,7 +202,7 @@ app.post('/v1/admin/invoice', authenticate, async (req: Request, res: Response) 
 app.put('/v1/admin/invoice/finalise/:invoiceId', authenticate, async (req: Request, res: Response) => {
   try {
     const invoiceId = req.params.invoiceId as string
-    const user = req.user 
+    const user = req.user
     const userId = user!.adminId
     const result = await finaliseInvoice(invoiceId, userId)
     return res.status(200).json(result)
@@ -238,13 +238,55 @@ app.get('/v1/admin/invoice/:invoiceId/xml', authenticate, async (req: Request, r
   }
 })
 
-// get all invoices
+// get all invoices (v1)
 app.get('/v1/admin/invoices', authenticate, async (req, res) => {
   try {
     const user = req.user
     const userId = user!.adminId
     const invoices = await getAllInvoices(userId)
 
+    res.status(200).json({invoices})
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      return res.status(500).json({
+        error: err.name,
+        message: "Internal error (unexpected failure)."
+      })
+    }
+  }
+})
+
+// get all invoices + filtering (v2)
+app.get('/v2/admin/invoices', authenticate, async (req, res) => {
+  try {
+    const user = req.user
+    const userId = user!.adminId
+
+    const filters: InvoiceFilters = {
+      ...(req.query.status && { status: req.query.status as string }),
+      ...(req.query.buyerName && { buyerName: req.query.buyerName as string }),
+      ...(req.query.sellerName && { sellerName: req.query.sellerName as string }),
+      ...((req.query.issueDateFrom || req.query.issueDateTo) && {
+        issueDate: {
+          ...(req.query.issueDateFrom && { from: req.query.issueDateFrom as string }),
+          ...(req.query.issueDateTo && { to: req.query.issueDateTo as string })
+        }
+      }),
+      ...((req.query.dueDateFrom || req.query.dueDateTo) && {
+        dueDate: {
+          ...(req.query.dueDateFrom && { from: req.query.dueDateFrom as string }),
+          ...(req.query.dueDateTo && { to: req.query.dueDateTo as string })
+        }
+      }),
+      ...((req.query.periodFrom || req.query.periodTo) && {
+        invoicePeriod: {
+          ...(req.query.periodFrom && { startDate: req.query.periodFrom as string }),
+          ...(req.query.periodTo && { endDate: req.query.periodTo as string })
+        }
+      })
+    }
+
+    const invoices = await getAllInvoices(userId, filters)
     res.status(200).json({invoices})
   } catch (err: unknown) {
     if (err instanceof Error) {
