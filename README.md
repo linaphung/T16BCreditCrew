@@ -136,6 +136,7 @@ That's it — you're ready to start generating invoices.
 | PUT | `/v1/invoices/{invoiceId}` | Edit invoice fields |
 | DELETE | `/v1/invoices/{invoiceId}` | Delete a specific invoice |
 | GET | `/v1/admin/invoice/{invoiceId}/xml` | Export invoice as a downloadable XML document |
+| GET | `/v1/admin/invoice/{invoiceId}/pdf` | Export invoice as a downloadable PDF document |
 
 ---
 
