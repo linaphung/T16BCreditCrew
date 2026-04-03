@@ -145,7 +145,7 @@ export interface InvoiceFilters {
 // interface for invoiceData has to be created
 export interface GeneratedInvoice {
   invoiceId: string;
-  invoiceStatus: 'draft' | 'invalid' | 'finalised';
+  invoiceStatus: 'draft' | 'invalid' | 'finalised' | 'overdue' | 'sent';
   invoiceData: InvoiceData;
   invoiceXML: string;
 }

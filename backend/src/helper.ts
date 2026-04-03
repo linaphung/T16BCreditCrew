@@ -74,7 +74,8 @@ export function extractBearerToken(req: Request) {
  * Sums the line extension amounts (quantity * unitPrice) across all order lines.
  */
 export const calculateLineExtension = (orderlines: OrderLine[]) => {
-  return orderlines.reduce((sum, line) => sum + (line.quantity * line.unitPrice), 0)
+  const total = orderlines.reduce((sum, line) => sum + (line.quantity * line.unitPrice), 0)
+  return Math.round(total * 100) / 100
 }
 
 /**

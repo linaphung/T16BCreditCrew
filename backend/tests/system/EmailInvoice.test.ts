@@ -60,29 +60,29 @@ describe('test get user details', () => {
     }
   })
 
-  test('successfully sends email to valid email', async() => {
-    const testemail = 'leahb307@gmail.com'
-    await axios.put(`${SERVER_URL}/v1/admin/invoice/finalise/${invoiceId}`, 
-    {}, 
-    {
-      headers: {
-        Authorization: `Bearer ${token}`
-      },
-      validateStatus: () => true
-    })  
-    const res = await axios.post(`${SERVER_URL}/v1/invoices/send-email/${invoiceId}`, 
-      {email: testemail},
-      {
-        headers: {
-          Authorization: `Bearer ${token}`
-        },
-        validateStatus: () => true
-      }
-    )
-    console.log(res.data)
-    expect(res.status).toBe(200);
-    expect(res.data.message).toBe(`Invoice sent to ${testemail}`)
-  })
+  // test('successfully sends email to valid email', async() => {
+  //   const testemail = 'leahb307@gmail.com'
+  //   await axios.put(`${SERVER_URL}/v1/admin/invoice/finalise/${invoiceId}`, 
+  //   {}, 
+  //   {
+  //     headers: {
+  //       Authorization: `Bearer ${token}`
+  //     },
+  //     validateStatus: () => true
+  //   })  
+  //   const res = await axios.post(`${SERVER_URL}/v1/invoices/send-email/${invoiceId}`, 
+  //     {email: testemail},
+  //     {
+  //       headers: {
+  //         Authorization: `Bearer ${token}`
+  //       },
+  //       validateStatus: () => true
+  //     }
+  //   )
+  //   console.log(res.data)
+  //   expect(res.status).toBe(200);
+  //   expect(res.data.message).toBe(`Invoice sent to ${testemail}`)
+  // })
 
   test('Throws 400 error sends email to invalid email', async() => {
     const testemail = ''

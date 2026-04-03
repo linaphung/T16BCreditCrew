@@ -162,7 +162,7 @@ export const finaliseInvoice = async (invoiceId: string, userId: string) => {
   if (!invoice)
     throw new InvoiceNotFoundError('Invoice does not exist')
 
-  if (invoice.status === 'finalised')
+  if (invoice.status === 'finalised' || invoice.status === 'sent')
     throw new InvoiceBadRequest('Invoice is already finalised')
 
   const invoiceData = invoice.invoiceData as InvoiceData
@@ -193,7 +193,9 @@ export const exportInvoice = async (invoiceId: string, userId: string) => {
 
   if (!invoice)
     throw new InvoiceNotFoundError('Invoice does not exist')
-
+  if (invoice.status === 'overdue' || invoice.status === 'sent') {
+    return invoice.invoiceXMLString
+  }
   if (invoice.status !== 'finalised' || !invoice.invoiceXMLString)
     throw new InvoiceBadRequest('Invoice has not been successfully finalised')
 
