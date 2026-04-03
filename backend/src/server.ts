@@ -10,6 +10,7 @@ import { extractBearerToken } from './helper.js'
 import { InvoiceNotFoundError } from './errors.js'
 import { validateInvoice } from './invoiceValidation.js'
 import { emailInvoice } from './emailservice.js'
+import { exportInvoicePDF } from './pdfExport.js'
 import multer from 'multer'
 import swaggerUi from 'swagger-ui-express'
 import jsyaml from 'js-yaml'
@@ -441,5 +442,25 @@ app.post('/v1/invoices/send-email/:invoiceId', authenticate, async (req: Request
   }
 })
 
+// Returns the finalised invoice as a downloadable PDF
+app.get('/v1/admin/invoice/:invoiceId/pdf', authenticate, async (req: Request, res: Response) => {
+  try {
+    const invoiceId = req.params.invoiceId as string
+    const userId = req.user!.adminId
+    const doc = await exportInvoicePDF(invoiceId, userId)
+
+    res.setHeader('Content-Type', 'application/pdf')
+    res.setHeader('Content-Disposition', `attachment; filename=invoice-${invoiceId}.pdf`)
+    doc.pipe(res)
+    doc.end()
+  } catch (error) {
+    const err = error as Error & { statusCode?: number }
+    const statusCode = err.statusCode || 500
+    return res.status(statusCode).json({
+      error: err.name,
+      message: err.message,
+    })
+  }
+})
 
 export default app
