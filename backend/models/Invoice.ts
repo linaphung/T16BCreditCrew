@@ -58,7 +58,7 @@ const invoiceSchema = new mongoose.Schema({
 
   status : {
     type: String,
-    enum: ['draft', 'invalid', 'finalised', 'overdue', 'sent'],
+    enum: ['draft', 'invalid', 'finalised','sent', 'paid'],
     default: 'draft'
   },
 
@@ -67,6 +67,11 @@ const invoiceSchema = new mongoose.Schema({
   invoiceXMLString: {
     type: String
   },
+
+  isOverdue: {
+    type: Boolean,
+    default: false
+  }
 
   // add something that keeps track of user session/token
 }, {timestamps: true})

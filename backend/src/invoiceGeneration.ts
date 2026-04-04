@@ -1,6 +1,6 @@
 import Invoice from '../models/Invoice.js'
 import { GeneratedInvoice, InvoiceData, DraftInvoiceInput, DeleteInvoiceResponse, InvoicePeriod, InvoiceFilters } from './types.js'
-import { calculateLineExtension, generateXMLString } from './helper.js'
+import { calculateLineExtension, generateXMLString, isOverdue } from './helper.js'
 import { InvoiceBadRequest, InvoiceNotFoundError, InvalidFileError } from './errors.js'
 import { validateInvoiceHelper } from './invoiceValidation.js'
 import { XMLParser } from 'fast-xml-parser'
@@ -128,7 +128,6 @@ export const generateInvoiceDraft = async (
       amount: payableAmount
     }
   }
-
   const invoice = await Invoice.create({
     userId,
     status: 'draft',
@@ -140,7 +139,8 @@ export const generateInvoiceDraft = async (
     invoiceId: invoice._id.toString(),
     invoiceData,
     invoiceStatus: 'draft',
-    invoiceXML: ""
+    invoiceXML: "",
+    isOverdue: invoice.isOverdue
   }
 }
 
@@ -162,8 +162,8 @@ export const finaliseInvoice = async (invoiceId: string, userId: string) => {
   if (!invoice)
     throw new InvoiceNotFoundError('Invoice does not exist')
 
-  if (invoice.status === 'finalised' || invoice.status === 'sent')
-    throw new InvoiceBadRequest('Invoice is already finalised')
+  if (invoice.status === 'finalised' || invoice.status === 'sent' || invoice.status === 'paid')
+    throw new InvoiceBadRequest(`Invoice is already ${invoice.status}`)
 
   const invoiceData = invoice.invoiceData as InvoiceData
   const xmlString = generateXMLString(invoiceData, invoiceId)
@@ -193,7 +193,7 @@ export const exportInvoice = async (invoiceId: string, userId: string) => {
 
   if (!invoice)
     throw new InvoiceNotFoundError('Invoice does not exist')
-  if (invoice.status === 'overdue' || invoice.status === 'sent') {
+  if (invoice.status === 'sent' || invoice.status === 'paid') {
     return invoice.invoiceXMLString
   }
   if (invoice.status !== 'finalised' || !invoice.invoiceXMLString)
@@ -216,7 +216,8 @@ export const getInvoice = async (invoiceId: string, userId: string): Promise<Gen
     invoiceId: invoice._id.toString(),
     invoiceStatus: invoice.status,
     invoiceData: invoice.invoiceData as InvoiceData,
-    invoiceXML: invoice.invoiceXMLString!
+    invoiceXML: invoice.invoiceXMLString!,
+    isOverdue: invoice.isOverdue
   }
 }
 
@@ -273,7 +274,8 @@ export const getAllInvoices = async (userId: string, filters?: InvoiceFilters): 
     invoiceId: invoice._id.toString(),
     invoiceStatus: invoice.status,
     invoiceData: invoice.invoiceData as InvoiceData,
-    invoiceXML: invoice.invoiceXMLString || ""
+    invoiceXML: invoice.invoiceXMLString || "",
+    isOverdue: invoice.isOverdue
   }))
 }
 
@@ -298,7 +300,8 @@ export const updateInvoice = async (
     invoiceId: invoice._id.toString(),
     invoiceStatus: invoice.status,
     invoiceData: invoice.invoiceData as InvoiceData,
-    invoiceXML: invoice.invoiceXMLString!
+    invoiceXML: invoice.invoiceXMLString!,
+    isOverdue: invoice.isOverdue
   }
 }
 
@@ -316,4 +319,47 @@ export const deleteInvoice = async (
     throw new InvoiceNotFoundError('Invoice not found')
 
   return {}
+}
+
+export const markAsPaid = async (invoiceId: string, userId: string) => {
+  let invoice;
+  try {
+    invoice = await Invoice.findOne({ _id: invoiceId, userId })
+  } catch {
+    throw new InvoiceNotFoundError('Invoice does not exist')
+  }
+
+  if (!invoice)
+    throw new InvoiceNotFoundError('Invoice does not exist')
+
+  if (invoice.status === 'draft' || invoice.status === 'invalid') {
+    throw new InvoiceBadRequest(`Invoice is still ${invoice.status} state`)
+  }
+
+  invoice.status = 'paid'
+  await invoice.save()
+  return {invoiceId: invoice._id.toString()}
+}
+
+export const checkForOverdue = async(userId: string) => {
+  const invoices = await Invoice.find({
+    userId,
+    status: {$in : ['finalised', 'sent']},
+    isOverdue: false
+  })
+
+  const overdueIds = invoices
+    .filter(i =>  isOverdue((i.invoiceData as InvoiceData).dueDate))
+    .map(i => i._id.toString())
+  // if a users invoice has dueDate marks as overdue if overdue
+  if (overdueIds.length === 0) {
+    return {updated: 0}
+  }
+  // updates 
+  const result = await Invoice.updateMany(
+    { _id: { $in: overdueIds } },
+    { $set: { isOverdue: true } }
+  )
+
+  return {updated: result.modifiedCount}
 }

@@ -7,7 +7,8 @@ const testInvoice = {
   _id: { toString: () => '123' },
   status: 'draft',
   invoiceData: { buyer: { name: 'test buyer' } },
-  invoiceXMLString: ''
+  invoiceXMLString: '',
+  isOverdue: false
 }
 
 beforeEach(() => {
@@ -23,7 +24,8 @@ describe('getInvoice', () => {
       invoiceId: '123',
       invoiceStatus: 'draft',
       invoiceData: expect.any(Object),
-      invoiceXML: ''
+      invoiceXML: '', 
+      isOverdue: expect.any(Boolean)
     })
   })
 

@@ -3,7 +3,7 @@ import { Request, Response } from 'express'
 import mongoose from 'mongoose'
 import dotenv from 'dotenv'
 import { adminAuthLogin, adminRegisterUser, adminUserDetails, adminUserDetailsUpdate } from './auth.js'
-import {generateInvoiceDraft, getAllInvoices, getInvoice, updateInvoice,deleteInvoice, finaliseInvoice, exportInvoice, uploadOrderDocument, parseOrderDocument} from './invoiceGeneration.js'
+import {generateInvoiceDraft, getAllInvoices, getInvoice, updateInvoice,deleteInvoice, finaliseInvoice, exportInvoice, uploadOrderDocument, parseOrderDocument, markAsPaid, checkForOverdue} from './invoiceGeneration.js'
 import { authenticate } from '../middleware/authenticate.js'
 import { InvoiceFilters, UserLogin, UserRegister} from './types.js'
 import { extractBearerToken } from './helper.js'
@@ -481,6 +481,41 @@ app.get('/v1/admin/invoice/:invoiceId/pdf', authenticate, async (req: Request, r
       message: err.message,
     })
   }
+})
+
+app.put('/v1/admin/invoice/:invoiceId/mark-as-paid', authenticate, async(req: Request, res: Response) => {
+    try {
+      const invoiceId = req.params.invoiceId as string;
+      const user = req.user
+      const userId = user!.adminId
+      const result = await markAsPaid(invoiceId, userId)
+      return res.status(200).json(result)
+    } catch (error) {
+      const err = error as Error & { statusCode?: number }
+      const statusCode = err.statusCode || 500
+      const message = err.message || 'Server Error'
+      return res.status(statusCode).json({
+        error: err.name,
+        message: message,
+      })
+    }
+})
+
+app.put('/v1/admin/invoice/mark-overdue', authenticate, async(req: Request, res: Response) => {
+    try {
+      const user = req.user
+      const userId = user!.adminId
+      const result = await checkForOverdue(userId)
+      return res.status(200).json(result)
+    } catch (error) {
+      const err = error as Error & { statusCode?: number }
+      const statusCode = err.statusCode || 500
+      const message = err.message || 'Server Error'
+      return res.status(statusCode).json({
+        error: err.name,
+        message: message,
+      })
+    }
 })
 
 export default app
