@@ -1,5 +1,5 @@
 import { adminRegisterUser, adminAuthLogin, adminAuthLogout, adminUserDetails, adminUserDetailsUpdate } from '../../src/auth.js'
-import { generateInvoiceDraft, uploadOrderDocument, parseOrderDocument, finaliseInvoice, exportInvoice, getInvoice, getAllInvoices, updateInvoice, deleteInvoice } from '../../src/invoiceGeneration.js'
+import { generateInvoiceDraft, uploadOrderDocument, parseOrderDocument, finaliseInvoice, exportInvoice, getInvoice, getAllInvoices, updateInvoice, deleteInvoice, checkForOverdue, markAsPaid } from '../../src/invoiceGeneration.js'
 import { validateInvoiceHelper, validateInvoice } from '../../src/invoiceValidation.js'
 import { UserUpdate, DraftInvoiceInput, InvoiceData, InvoicePeriod } from '../../src/types.js'
 
@@ -157,6 +157,26 @@ export const validateInv = async (invoiceId: string, userId: string) => {
   try {
     const body = await validateInvoice(invoiceId, userId)
     return { body, statusCode: 200 }
+  } catch (error) {
+    const err = error as Error & { statusCode?: number }
+    return { body: { error: err.name, message: err.message }, statusCode: err.statusCode || 400 }
+  }
+}
+
+export const checkOverdue = async (userId: string) => {
+  try {
+    const result = await checkForOverdue(userId)
+    return { statusCode: 200, body: result }
+  } catch (error) {
+    const err = error as Error & { statusCode?: number }
+    return { body: { error: err.name, message: err.message }, statusCode: err.statusCode || 400 }
+  }
+}
+
+export const markPaid = async (userId: string, invoiceId: string) => {
+  try {
+    const result = await markAsPaid(invoiceId, userId)
+    return { statusCode: 200, body: result }
   } catch (error) {
     const err = error as Error & { statusCode?: number }
     return { body: { error: err.name, message: err.message }, statusCode: err.statusCode || 400 }

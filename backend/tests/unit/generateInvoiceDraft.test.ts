@@ -14,7 +14,8 @@ const testInvoice = {
     lineItems: [{ lineId: '1', itemName: 'cat', quantity: 100, unitPrice: 10 }],
     payableAmount: { currency: 'AUD', amount: 1000 }
   },
-  invoiceXMLString: ''
+  invoiceXMLString: '',
+  isOverdue: false
 }
 
 const testInput = {
@@ -40,7 +41,8 @@ describe('generateInvoiceDraft', () => {
       invoiceId: '123',
       invoiceStatus: 'draft',
       invoiceData: expect.any(Object),
-      invoiceXML: ''
+      invoiceXML: '',
+      isOverdue: expect.any(Boolean)
     })
   })
 })

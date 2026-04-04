@@ -196,3 +196,10 @@ export const generateXMLString = (invoiceData: InvoiceData, invoiceId: string) =
 
   return doc.end({ prettyPrint: true })
 }
+
+export const isOverdue = (dueDate: string) => {
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+
+  return new Date(dueDate) < startOfToday;
+}

@@ -141,13 +141,12 @@ export interface InvoiceFilters {
   }
 }
 
-// swagger schema for invoiceData has to be edited
-// interface for invoiceData has to be created
 export interface GeneratedInvoice {
   invoiceId: string;
-  invoiceStatus: 'draft' | 'invalid' | 'finalised' | 'overdue' | 'sent';
+  invoiceStatus: 'draft' | 'invalid' | 'finalised' | 'overdue' | 'sent' | 'paid';
   invoiceData: InvoiceData;
   invoiceXML: string;
+  isOverdue: boolean;
 }
 
 export interface ValidationCheck {

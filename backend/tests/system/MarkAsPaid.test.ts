@@ -2,7 +2,7 @@ import axios from 'axios'
 const PORT = process.env.PORT || 3000;
 const SERVER_URL = `http://localhost:${PORT}`;
 
-describe('test get email invoice', () => {
+describe('test mark invoice as paid', () => {
   let token: string
   let email: string
   const password = 'meowmeow123'
@@ -60,8 +60,7 @@ describe('test get email invoice', () => {
     }
   })
 
-  test('successfully sends email to valid email', async() => {
-    const testemail = 'leahb307@gmail.com'
+  test('Marks finalised invoice as paid', async() => {
     await axios.put(`${SERVER_URL}/v1/admin/invoice/finalise/${invoiceId}`, 
     {}, 
     {
@@ -70,8 +69,8 @@ describe('test get email invoice', () => {
       },
       validateStatus: () => true
     })  
-    const res = await axios.post(`${SERVER_URL}/v1/invoices/send-email/${invoiceId}`, 
-      {email: testemail},
+    const res = await axios.put(`${SERVER_URL}/v1/admin/invoice/${invoiceId}/mark-as-paid`, 
+      {},
       {
         headers: {
           Authorization: `Bearer ${token}`
@@ -79,23 +78,14 @@ describe('test get email invoice', () => {
         validateStatus: () => true
       }
     )
-    console.log(res.data)
     expect(res.status).toBe(200);
-    expect(res.data.message).toBe(`Invoice sent to ${testemail}`)
+    expect(res.data.invoiceId).toBe(invoiceId)
   })
 
-  test('Throws 400 error sends email to invalid email', async() => {
-    const testemail = ''
-    await axios.put(`${SERVER_URL}/v1/admin/invoice/finalise/${invoiceId}`, 
-    {}, 
-    {
-      headers: {
-        Authorization: `Bearer ${token}`
-      },
-      validateStatus: () => true
-    })  
-    const res = await axios.post(`${SERVER_URL}/v1/invoices/send-email/${invoiceId}`, 
-      {email: testemail},
+
+  test('Rejects request to mark draft invoice as paid', async() => {
+    const res = await axios.put(`${SERVER_URL}/v1/admin/invoice/${invoiceId}/mark-as-paid`, 
+      {},
       {
         headers: {
           Authorization: `Bearer ${token}`
@@ -103,45 +93,17 @@ describe('test get email invoice', () => {
         validateStatus: () => true
       }
     )
-    console.log(res.data)
     expect(res.status).toBe(400);
-    expect(res.data.message).toBe(`Invalid Email Address`)
+    expect(res.data.message).toBe('Invoice is still draft state')
   })
-
-  test('prevents emailing an invoice that is not finalised', async () => {
-    const testemail = 'leahb307@gmail.com'
-    const res = await axios.post(`${SERVER_URL}/v1/invoices/send-email/${invoiceId}`, 
-    {email: testemail},
-    {
-      headers: {
-        Authorization: `Bearer ${token}`
-      },
-      validateStatus: () => true
-    })        
-    expect(res.status).toBe(400)
-    expect(res.data).toEqual({
-      error: 'INVOICE_BAD_REQUEST',
-      message: 'Invoice has not been successfully finalised'
-    });
-  })
-
 
   test('invalid or missing token', async () => {
     const invalid_token = ''
-    const testemail = 'leahb307@gmail.com'
-    await axios.put(`${SERVER_URL}/v1/admin/invoice/finalise/${invoiceId}`, 
-    {}, 
-    {
-      headers: {
-        Authorization: `Bearer ${invalid_token}`
-      },
-      validateStatus: () => true
-    })  
-    const res = await axios.post(`${SERVER_URL}/v1/invoices/send-email/${invoiceId}`, 
-      {email: testemail},
+    const res = await axios.put(`${SERVER_URL}/v1/admin/invoice/${invoiceId}/mark-as-paid`, 
+      {},
       {
         headers: {
-          Authorization: `Bearer invalid token`
+          Authorization: `Bearer ${invalid_token}`
         },
         validateStatus: () => true
       }
@@ -154,17 +116,8 @@ describe('test get email invoice', () => {
 
   test('missing or invalid invoiceId', async () => {
     const invalid_invoiceId = 'invalidInvoiceId'
-    const testemail = 'leahb307@gmail.com'
-    await axios.put(`${SERVER_URL}/v1/admin/invoice/finalise/${invoiceId}`, 
-    {}, 
-    {
-      headers: {
-        Authorization: `Bearer ${token}`
-      },
-      validateStatus: () => true
-    })  
-    const res = await axios.post(`${SERVER_URL}/v1/invoices/send-email/${invalid_invoiceId}`, 
-      {email: testemail},
+    const res = await axios.put(`${SERVER_URL}/v1/admin/invoice/${invalid_invoiceId}/mark-as-paid`, 
+      {},
       {
         headers: {
           Authorization: `Bearer ${token}`
