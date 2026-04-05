@@ -940,32 +940,93 @@ paths:
       tags: 
         - 'Invoice Generation and Management'
       summary: emails invoice to user
-      description:
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UserLogin'
+      parameters:
+        - in: path
+          name: invoiceId
+          required: true
+          schema:
+            $ref: '#/components/schemas/InvoiceId'
       responses:
         '200':
-          description: email sent successfully.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserLoginSuccess'
+          description: Success.
         '400':
           description: Invoice has not been successfully finalised
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
         '404':
           description: Invoice not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+
+  /v1/invoices/convert-currency/{invoiceId}:
+    put:
+      tags:
+        - 'Invoice Generation and Management'
+      summary: Convert invoice currency
+      parameters:
+        - in: path
+          name: invoiceId
+          required: true
+          schema:
+            $ref: '#/components/schemas/InvoiceId'
+      responses:
+        '200':
+          description: Success.
+        '400':
+          description: Invalid currency
+        '404':
+          description: Invoice not found
+        '500':
+          description: Internal error (unexpected failure).
+
+  /v1/admin/invoice/{invoiceId}/pdf:
+    get:
+      tags:
+        - 'Invoice Generation and Management'
+      summary: Exports invoice as PDF
+      parameters:
+        - in: path
+          name: invoiceId
+          required: true
+          schema:
+            $ref: '#/components/schemas/InvoiceId'
+      responses:
+        '200':
+          description: Success.
+        '400':
+          description: Only finalised invoices can be exported as PDF
+        '404':
+          description: Invoice not found
+        '500':
+          description: Internal error (unexpected failure).
+
+  /v1/admin/invoice/{invoiceId}/mark-as-paid:
+    put:
+      tags:
+        - 'Invoice Generation and Management'
+      summary: Mark invoice as paid
+      parameters:
+        - in: path
+          name: invoiceId
+          required: true
+          schema:
+            $ref: '#/components/schemas/InvoiceId'
+      responses:
+        '200':
+          description: Success.
+        '400':
+          description: Invoice is still draft state
+        '404':
+          description: Invoice not found
+        '500':
+          description: Internal error (unexpected failure).
+
+  /v1/admin/invoice/mark-overdue:
+    put:
+      tags:
+        - 'Invoice Generation and Management'
+      summary: Mark overdue invoices
+      responses:
+        '200':
+          description: Success.
+        '500':
+          description: Internal error (unexpected failure).
 
   /v1/invoices/{invoiceId}/validate:
     post:
