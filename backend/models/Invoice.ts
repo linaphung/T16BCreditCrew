@@ -28,7 +28,7 @@ const invoiceDataSchema = new mongoose.Schema({
   paymentTerms: String,
 
   invoicePeriod: {
-    satisfiestartDate: String,
+    startDate: String,
     endDate: String
   },
 
