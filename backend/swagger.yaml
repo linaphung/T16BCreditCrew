@@ -674,7 +674,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse' 
                 
-  /v1/invoices/finalise/{invoiceId}:
+  /v1/admin/invoice/finalise/{invoiceId}:
     post:
       tags:
         - Invoice Generation and Management
