@@ -747,6 +747,36 @@ paths:
             application/json: 
               schema: 
                 $ref: '#/components/schemas/ErrorResponse'
+  
+  /v2/admin/invoices:
+    get:
+      tags: 
+        - 'Invoice Generation and Management'
+      summary: Lists all of the user's invoices with or without filters
+      security: 
+        - BearerAuth: []
+      description: Lists all user's generated UBL invoices. Has option to filter results by buyer, seller, dates and status.
+      responses: 
+        '200':
+          description: Success.
+          content:
+            application/json: 
+              schema: 
+                type: array
+                items:
+                  $ref: '#/components/schemas/GeneratedInvoice'
+        '401':
+          description: Token is invalid or empty
+          content:
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorResponse'
+        '500': 
+          description: Internal error (unexpected failure).
+          content:
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorResponse'
 
   /v1/invoices/{invoiceId}:
     delete:
@@ -904,6 +934,99 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+
+  /v1/invoices/send-email/:invoiceId:
+    post:
+      tags: 
+        - 'Invoice Generation and Management'
+      summary: emails invoice to user
+      parameters:
+        - in: path
+          name: invoiceId
+          required: true
+          schema:
+            $ref: '#/components/schemas/InvoiceId'
+      responses:
+        '200':
+          description: Success.
+        '400':
+          description: Invoice has not been successfully finalised
+        '404':
+          description: Invoice not found
+
+  /v1/invoices/convert-currency/{invoiceId}:
+    put:
+      tags:
+        - 'Invoice Generation and Management'
+      summary: Convert invoice currency
+      parameters:
+        - in: path
+          name: invoiceId
+          required: true
+          schema:
+            $ref: '#/components/schemas/InvoiceId'
+      responses:
+        '200':
+          description: Success.
+        '400':
+          description: Invalid currency
+        '404':
+          description: Invoice not found
+        '500':
+          description: Internal error (unexpected failure).
+
+  /v1/admin/invoice/{invoiceId}/pdf:
+    get:
+      tags:
+        - 'Invoice Generation and Management'
+      summary: Exports invoice as PDF
+      parameters:
+        - in: path
+          name: invoiceId
+          required: true
+          schema:
+            $ref: '#/components/schemas/InvoiceId'
+      responses:
+        '200':
+          description: Success.
+        '400':
+          description: Only finalised invoices can be exported as PDF
+        '404':
+          description: Invoice not found
+        '500':
+          description: Internal error (unexpected failure).
+
+  /v1/admin/invoice/{invoiceId}/mark-as-paid:
+    put:
+      tags:
+        - 'Invoice Generation and Management'
+      summary: Mark invoice as paid
+      parameters:
+        - in: path
+          name: invoiceId
+          required: true
+          schema:
+            $ref: '#/components/schemas/InvoiceId'
+      responses:
+        '200':
+          description: Success.
+        '400':
+          description: Invoice is still draft state
+        '404':
+          description: Invoice not found
+        '500':
+          description: Internal error (unexpected failure).
+
+  /v1/admin/invoice/mark-overdue:
+    put:
+      tags:
+        - 'Invoice Generation and Management'
+      summary: Mark overdue invoices
+      responses:
+        '200':
+          description: Success.
+        '500':
+          description: Internal error (unexpected failure).
 
   /v1/invoices/{invoiceId}/validate:
     post:
