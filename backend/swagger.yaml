@@ -935,6 +935,38 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /v1/invoices/send-email/:invoiceId:
+    post:
+      tags: 
+        - 'Invoice Generation and Management'
+      summary: emails invoice to user
+      description:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserLogin'
+      responses:
+        '200':
+          description: email sent successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserLoginSuccess'
+        '400':
+          description: Invoice has not been successfully finalised
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Invoice not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /v1/invoices/{invoiceId}/validate:
     post:
       tags:
