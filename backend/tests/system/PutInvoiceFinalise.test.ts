@@ -27,8 +27,8 @@ describe('test invoice draft finalisation', () => {
     const res = await axios.post(`${SERVER_URL}/v1/admin/invoice`, {
       issueDate: '2026-03-15',
       invoicePeriod: {
-          invoiceStartDate: '2026-03-01',
-          invoiceEndDate: '2026-03-20',
+          startDate: '2026-03-01',
+          endDate: '2026-03-20',
       },
       dueDate: '2026-03-30',
       paymentTerms: 'Payment due within 30 days',

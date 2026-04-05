@@ -117,8 +117,8 @@ export const generateInvoiceDraft = async (
     dueDate: input.dueDate,
     paymentTerms: input.paymentTerms,
     invoicePeriod: input.invoicePeriod ? {
-      invoiceStartDate: input.invoicePeriod.invoiceStartDate,
-      invoiceEndDate: input.invoicePeriod.invoiceEndDate,
+      startDate: input.invoicePeriod.startDate,
+      endDate: input.invoicePeriod.endDate,
     } : undefined,
     buyer: { name: input.buyer },
     seller: { name: input.seller },
@@ -262,10 +262,10 @@ export const getAllInvoices = async (userId: string, filters?: InvoiceFilters): 
     }
 
     if (invoicePeriod?.startDate)
-      match["invoiceData.invoicePeriod.invoiceStartDate"] = { $gte: invoicePeriod.startDate }
+      match["invoiceData.invoicePeriod.startDate"] = { $gte: invoicePeriod.startDate }
 
     if (invoicePeriod?.endDate)
-      match["invoiceData.invoicePeriod.invoiceEndDate"] = { $lte: invoicePeriod.endDate }
+      match["invoiceData.invoicePeriod.endDate"] = { $lte: invoicePeriod.endDate }
   }
 
   const invoices = await Invoice.aggregate([{ $match: match }])

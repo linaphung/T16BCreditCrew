@@ -31,8 +31,8 @@ export async function exportInvoicePDF(invoiceId: string, userId: string): Promi
   doc.text(`Issue Date: ${data?.issueDate || 'N/A'}`)
   doc.text(`Due Date: ${data?.dueDate || 'N/A'}`)
   doc.text(`Payment Terms: ${data?.paymentTerms || 'N/A'}`)
-  if (data?.invoicePeriod?.invoiceStartDate) {
-    doc.text(`Period: ${data.invoicePeriod.invoiceStartDate} – ${data.invoicePeriod.invoiceEndDate}`)
+  if (data?.invoicePeriod?.startDate) {
+    doc.text(`Period: ${data.invoicePeriod.startDate} – ${data.invoicePeriod.endDate}`)
   }
   doc.moveDown()
 

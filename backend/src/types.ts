@@ -101,8 +101,8 @@ export interface CopyDataIntoInvoice {
 }
 
 export interface InvoicePeriod {
-  invoiceStartDate: string,
-  invoiceEndDate: string,
+  startDate: string,
+  endDate: string,
 }
 
 export interface InvoiceData {
