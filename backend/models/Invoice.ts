@@ -28,8 +28,8 @@ const invoiceDataSchema = new mongoose.Schema({
   paymentTerms: String,
 
   invoicePeriod: {
-    invoiceStartDate: String,
-    invoiceEndDate: String
+    satisfiestartDate: String,
+    endDate: String
   },
 
   buyer: {

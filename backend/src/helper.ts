@@ -123,78 +123,49 @@ export const getUserFromToken = async (token: string) => {
  * @returns A pretty-printed UBL XML string.
  */
 export const generateXMLString = (invoiceData: InvoiceData, invoiceId: string) => {
-  const doc = create({ version: '1.0' })
+  const root = create({ version: '1.0' })
     .ele('Invoice', {
       xmlns: 'urn:oasis:names:specification:ubl:schema:xsd:Invoice-2',
       'xmlns:cac': 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2',
       'xmlns:cbc': 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2'
     })
+    .ele('cbc:ID').txt(invoiceId).up()
+    .ele('cbc:IssueDate').txt(invoiceData.issueDate).up()
 
-    .ele('cbc:ID')
-      .txt(invoiceId)
-    .up()
-
-    .ele('cbc:IssueDate')
-      .txt(invoiceData.issueDate)
-    .up()
-
-    .ele('cac:InvoicePeriod')
-      .ele('cbc:StartDate')
-        .txt(invoiceData.invoicePeriod?.invoiceStartDate ?? '')
+  // Only add InvoicePeriod if both dates are present
+  if (invoiceData.invoicePeriod?.startDate && invoiceData.invoicePeriod?.endDate) {
+    root
+      .ele('cac:InvoicePeriod')
+        .ele('cbc:StartDate').txt(invoiceData.invoicePeriod.startDate).up()
+        .ele('cbc:EndDate').txt(invoiceData.invoicePeriod.endDate).up()
       .up()
-      .ele('cbc:EndDate')
-        .txt(invoiceData.invoicePeriod?.invoiceEndDate ?? '')
-      .up()
-    .up()
+  }
 
+  root
     .ele('cac:AccountingSupplierParty')
-      .ele('cac:Party')
-        .ele('cac:PartyName')
-          .ele('cbc:Name')
-            .txt(invoiceData.seller.name)
-          .up()
-        .up()
-      .up()
+      .ele('cac:Party').ele('cac:PartyName').ele('cbc:Name').txt(invoiceData.seller.name).up().up().up()
     .up()
-
     .ele('cac:AccountingCustomerParty')
-      .ele('cac:Party')
-        .ele('cac:PartyName')
-          .ele('cbc:Name')
-            .txt(invoiceData.buyer.name)
-          .up()
-        .up()
-      .up()
+      .ele('cac:Party').ele('cac:PartyName').ele('cbc:Name').txt(invoiceData.buyer.name).up().up().up()
     .up()
-
     .ele('cac:LegalMonetaryTotal')
-      .ele('cbc:PayableAmount', {
-        currencyID: invoiceData.payableAmount.currency
-      })
+      .ele('cbc:PayableAmount', { currencyID: invoiceData.payableAmount.currency })
         .txt(invoiceData.payableAmount.amount.toString())
       .up()
     .up()
 
   invoiceData.lineItems.forEach(line => {
-    doc
+    root
       .ele('cac:InvoiceLine')
-        .ele('cbc:ID')
-          .txt(line.lineId)
-        .up()
-        .ele('cbc:LineExtensionAmount', {
-          currencyID: invoiceData.payableAmount.currency
-        })
+        .ele('cbc:ID').txt(line.lineId).up()
+        .ele('cbc:LineExtensionAmount', { currencyID: invoiceData.payableAmount.currency })
           .txt((line.quantity * line.unitPrice).toString())
         .up()
-        .ele('cac:Item')
-          .ele('cbc:Description')
-            .txt(line.itemName)
-          .up()
-        .up()
+        .ele('cac:Item').ele('cbc:Description').txt(line.itemName).up().up()
       .up()
   })
 
-  return doc.end({ prettyPrint: true })
+  return root.end({ prettyPrint: true })
 }
 
 export const isOverdue = (dueDate: string) => {
