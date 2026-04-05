@@ -747,6 +747,36 @@ paths:
             application/json: 
               schema: 
                 $ref: '#/components/schemas/ErrorResponse'
+  
+  /v2/admin/invoices:
+    get:
+      tags: 
+        - 'Invoice Generation and Management'
+      summary: Lists all of the user's invoices with or without filters
+      security: 
+        - BearerAuth: []
+      description: Lists all user's generated UBL invoices. Has option to filter results by buyer, seller, dates and status.
+      responses: 
+        '200':
+          description: Success.
+          content:
+            application/json: 
+              schema: 
+                type: array
+                items:
+                  $ref: '#/components/schemas/GeneratedInvoice'
+        '401':
+          description: Token is invalid or empty
+          content:
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorResponse'
+        '500': 
+          description: Internal error (unexpected failure).
+          content:
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/ErrorResponse'
 
   /v1/invoices/{invoiceId}:
     delete:
