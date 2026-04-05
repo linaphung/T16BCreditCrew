@@ -63,8 +63,8 @@ components:
           example: 'NJmKsg5oiW...'
     
     InvoiceId:
-      type: integer
-      example: 123
+      type: string
+      example: 'INV-123'
     
     InvoiceIdObj:
       type: object
@@ -675,7 +675,7 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse' 
                 
   /v1/admin/invoice/finalise/{invoiceId}:
-    post:
+    put:
       tags:
         - Invoice Generation and Management
       summary: Generate UBL Invoice from Order Contract.
