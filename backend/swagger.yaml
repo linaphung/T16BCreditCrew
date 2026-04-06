@@ -935,7 +935,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /v1/invoices/send-email/:invoiceId:
+  /v1/invoices/send-email/{invoiceId}:
     post:
       tags: 
         - 'Invoice Generation and Management'
@@ -946,13 +946,41 @@ paths:
           required: true
           schema:
             $ref: '#/components/schemas/InvoiceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  example: 'user@example.com'
       responses:
         '200':
           description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Successfully sent to user@example.com'
         '400':
           description: Invoice has not been successfully finalised
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '404':
           description: Invoice not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /v1/invoices/convert-currency/{invoiceId}:
     put:
@@ -965,15 +993,39 @@ paths:
           required: true
           schema:
             $ref: '#/components/schemas/InvoiceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - to
+              properties:
+                to:
+                  type: string
+                  example: 'USD'
       responses:
         '200':
           description: Success.
         '400':
           description: Invalid currency
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '404':
           description: Invoice not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '500':
           description: Internal error (unexpected failure).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /v1/admin/invoice/{invoiceId}/pdf:
     get:
@@ -991,10 +1043,22 @@ paths:
           description: Success.
         '400':
           description: Only finalised invoices can be exported as PDF
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '404':
           description: Invoice not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '500':
           description: Internal error (unexpected failure).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /v1/admin/invoice/{invoiceId}/mark-as-paid:
     put:
@@ -1010,12 +1074,28 @@ paths:
       responses:
         '200':
           description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvoiceId'
         '400':
           description: Invoice is still draft state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '404':
           description: Invoice not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '500':
           description: Internal error (unexpected failure).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /v1/admin/invoice/mark-overdue:
     put:
@@ -1025,8 +1105,20 @@ paths:
       responses:
         '200':
           description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  updated:
+                    type: integer
+                    example: 1
         '500':
           description: Internal error (unexpected failure).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /v1/invoices/{invoiceId}/validate:
     post:
