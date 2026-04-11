@@ -38,8 +38,19 @@ export default function RegisterPage({url, setToken}: RegisterPageProps) {
       return
     }
     const bodyObj = {email, password, businessName, abn}
-    const res = await axios.post(`${url}/v1/admin/auth/register`, bodyObj)
-    console.log(res)
+    try {
+      const res = await axios.post(`${url}/v1/admin/auth/register`, bodyObj)
+      localStorage.setItem('token', res.data.token)
+      setToken(res.data.token)
+      navigate('/dashboard')
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        alert(error.response?.data?.message || 'Registration failed')
+      } else {
+        alert('Registration failed')
+      }
+      console.log(error)
+    }
   }
 
   const navigate = useNavigate()

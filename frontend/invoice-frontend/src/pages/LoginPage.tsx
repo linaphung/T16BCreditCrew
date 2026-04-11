@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useState } from "react"
 import { Checkbox } from "@/components/ui/checkbox"
+import axios from "axios"
 
 interface LoginPageProps {
   url: string
@@ -23,9 +24,23 @@ export default function LoginPage({url, setToken}: LoginPageProps) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   
+
   const handleLoginSubmit = async() => {
-    console.log(email, password, url)
-    setToken('')
+    console.log(email, password,url)
+    const bodyObj = {email, password}
+    try {
+      const res = await axios.post(`${url}/v1/admin/login`, bodyObj)
+      localStorage.setItem('token', res.data.token)
+      setToken(res.data.token)
+      navigate('/dashboard')
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        alert(error.response?.data?.message || 'Login failed')
+      } else {
+        alert('Login Failed')
+      }
+      console.log(error)
+    }
   }
   const navigate = useNavigate()
   return (
