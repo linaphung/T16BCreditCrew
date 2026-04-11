@@ -8,7 +8,7 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-white font-sans">
       <nav className="flex justify-between items-center px-10 py-4 border-b border-gray-100">
-        <span className="text-base">Credit Crew</span>
+        <span className="text-base hover:bg-gray-200">Credit Crew</span>
         <div className="flex gap-2">
           <Button 
             variant={"outline"} 
@@ -26,6 +26,9 @@ export default function LandingPage() {
       <section className="text-center px-10 py-16" style={{
         background: 'linear-gradient(180deg, #ddeeff 0%, #ffffff 100%)',
       }}>
+        <div className="inline-block border border-blue-800 px-4 py-1 rounded-lg mb-2 hover:bg-gray-200">
+          <p className="text-base text-blue-900">• UBL 2.1 compliant invoicing</p>
+        </div>
         <h1 className="text-6xl font-semibold text-blue-900 mb-4">Invoicing made simple</h1>
         <p className="text-base text-grey-600 mb-4 mx-auto">
           Create, validate, manage and send invoices — everything your business needs, in one place.
