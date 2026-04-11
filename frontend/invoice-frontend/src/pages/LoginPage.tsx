@@ -13,13 +13,19 @@ import { Label } from "@/components/ui/label"
 import { useState } from "react"
 import { Checkbox } from "@/components/ui/checkbox"
 
-export default function LoginPage() {
+interface LoginPageProps {
+  url: string
+  setToken: (token: string | null) => void
+}
+
+export default function LoginPage({url, setToken}: LoginPageProps) {
   const [showPassword, setShowPassword] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   
   const handleLoginSubmit = async() => {
-    console.log(email, password)
+    console.log(email, password, url)
+    setToken('')
   }
   const navigate = useNavigate()
   return (
