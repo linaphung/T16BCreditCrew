@@ -9,7 +9,7 @@ import {
   SidebarMenuButton
 } from "@/components/ui/sidebar"
 import { LayoutDashboard, FilePlus, Upload, LogOut } from "lucide-react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useLocation } from "react-router-dom"
 import axios from "axios"
 
 interface AppSideBarProps {
@@ -24,6 +24,7 @@ export function AppSidebar({url, setToken}: AppSideBarProps) {
     {label: "Create Invoice", icon: <FilePlus></FilePlus> ,navigateTo: '/dashboard/create'},
     {label: "Upload Order", icon: <Upload></Upload>, navigateTo: '/dashboard/upload-order'},
   ]
+  const location = useLocation()
 
   const handleLogout = async() => {
     try {
@@ -58,7 +59,7 @@ export function AppSidebar({url, setToken}: AppSideBarProps) {
         <SidebarGroup />
           <SidebarMenu>
             {sideBarItems.map(i => (
-              <SidebarMenuItem className="py-1">
+              <SidebarMenuItem className={`py-1 ${location.pathname === i.navigateTo ? "bg-blue-50 text-blue-900" : " "}` }>
                 <SidebarMenuButton onClick={() => navigate(i.navigateTo)}>
                   {i.icon}
                   {i.label}

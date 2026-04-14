@@ -20,7 +20,7 @@ export default function UploadOrderPage({url, setToken}: CreateInvoicePageProps)
   return (
     <SidebarProvider>
       <AppSidebar url={url} setToken={setToken}></AppSidebar>
-      <main>create invoice</main>
+      
     </SidebarProvider>
   )
 }
