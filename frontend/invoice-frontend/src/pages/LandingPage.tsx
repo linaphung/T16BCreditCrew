@@ -7,8 +7,10 @@ export default function LandingPage() {
  
   return (
     <div className="min-h-screen bg-white font-sans">
-      <nav className="flex justify-between items-center px-10 py-4 border-b border-gray-100">
-        <span className="text-base hover:bg-gray-200">Credit Crew</span>
+      <nav className="flex justify-between items-center px-10 py-4 border-b border-blue-100">
+        <div className="hover:bg-blue-50 px-1">
+          <span className="text-base text-blue-900 font-semibold italic ">Ezy Invoicing</span>
+        </div>
         <div className="flex gap-2">
           <Button 
             variant={"outline"} 

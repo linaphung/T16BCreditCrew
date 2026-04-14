@@ -46,7 +46,9 @@ export default function LoginPage({url, setToken}: LoginPageProps) {
   return (
     <div className="min-h-screen bg-white font-sans" >
       <nav className="flex justify-between items-center px-10 py-4 border-b border-gray-100">
-        <span className="text-base hover:bg-gray-200" onClick={() => navigate('/')}>Credit Crew</span>
+        <div className="hover:bg-blue-50 px-1">
+          <span className="text-base text-blue-900 font-semibold italic" onClick={() => navigate('/')}>Ezy Invoicing</span>
+        </div>
         <div className="flex gap-2">
         </div>
       </nav>
@@ -54,7 +56,7 @@ export default function LoginPage({url, setToken}: LoginPageProps) {
         background: 'linear-gradient(180deg, #ddeeff 0%, #ffffff 100%)'}}>
         <Card className="px-4 py-8 w-full max-w-md shadow-lg">
           <CardHeader className="text-center ">
-            <CardTitle className="text-2xl font-semibold text-blue-900">Credit Crew</CardTitle>
+            <CardTitle className="text-2xl font-semibold text-blue-900 italic">Ezy Invoicing</CardTitle>
             <CardDescription className="text-sm text-gray-500">Welcome Back, Login into your account!</CardDescription>
           </CardHeader>
           <CardContent>
