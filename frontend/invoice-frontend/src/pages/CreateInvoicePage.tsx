@@ -1,9 +1,26 @@
+import { useNavigate} from "react-router-dom"
+import { useEffect } from "react"
+import { SidebarProvider } from "@/components/ui/sidebar"
+import { AppSidebar } from "@/components/custom/AppSidebar"
 
-export default function CreateInvoicePage() {
+interface CreateInvoicePageProps {
+  url: string,
+  setToken: (token: string | null) => void
+}
 
+export default function UploadOrderPage({url, setToken}: CreateInvoicePageProps) {
+  const navigate = useNavigate()
+  const token = localStorage.getItem('token')
+  useEffect(() => {
+    if (!token ) {
+      console.log(token)
+      navigate('/')
+    }
+  }, [])
   return (
-    <div>
-      create invoice
-    </div>
+    <SidebarProvider>
+      <AppSidebar url={url} setToken={setToken}></AppSidebar>
+      <main>create invoice</main>
+    </SidebarProvider>
   )
 }

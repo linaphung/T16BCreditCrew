@@ -47,7 +47,7 @@ export default function LoginPage({url, setToken}: LoginPageProps) {
     <div className="min-h-screen bg-white font-sans" >
       <nav className="flex justify-between items-center px-10 py-4 border-b border-gray-100">
         <div className="hover:bg-blue-50 px-1">
-          <span className="text-base text-blue-900 font-semibold italic" onClick={() => navigate('/')}>Ezy Invoicing</span>
+          <span className="text-base font-semibold tracking-tight text-blue-900" onClick={() => navigate('/')}>Ezy Invoicing</span>
         </div>
         <div className="flex gap-2">
         </div>

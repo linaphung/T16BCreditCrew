@@ -8,7 +8,7 @@ import DashboardPage from './pages/Dashboard'
 import ViewInvoicePage from './pages/ViewInvoice'
 import CreateInvoicePage from './pages/CreateInvoicePage'
 import EditInvoicePage from './pages/EditInvoicePage'
-
+import UploadOrderPage from './pages/UploadOrderPage'
 const url="http://localhost:3000"
 // const url="https://t16bcreditcrew-86oh.onrender.com"
 function App() {
@@ -20,10 +20,11 @@ function App() {
         <Route path='/' element={<LandingPage/>}></Route>
         <Route path='/login' element={<LoginPage url={url} setToken={setToken}/>}></Route>
         <Route path='/register' element={<RegisterPage url={url} setToken={setToken}/>}></Route>
-        <Route path='/dashboard' element={<DashboardPage/>}></Route>
-        <Route path='/dashboard/:invoiceId' element={<ViewInvoicePage/>}></Route>
-        <Route path='/dashboard/create' element={<CreateInvoicePage/>}></Route>
-        <Route path='/dashboard/:invoiceId/edit' element={<EditInvoicePage/>}></Route>
+        <Route path='/dashboard' element={<DashboardPage url={url} setToken={setToken}/>}></Route>
+        <Route path='/dashboard/:invoiceId' element={<ViewInvoicePage url={url} setToken={setToken}/>}></Route>
+        <Route path='/dashboard/create' element={<CreateInvoicePage url={url} setToken={setToken}/>}></Route>
+        <Route path='/dashboard/upload-order' element={<UploadOrderPage url={url} setToken={setToken}/>}></Route>
+        <Route path='/dashboard/:invoiceId/edit' element={<EditInvoicePage url={url} setToken={setToken}/>}></Route>
       </Routes>
     </BrowserRouter>
   )
