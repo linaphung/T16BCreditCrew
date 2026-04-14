@@ -11,7 +11,6 @@ interface DashboardProps {
 export default function DashboardPage({ url, setToken }: DashboardProps) {
   const navigate = useNavigate()
   const token = localStorage.getItem("token")
-
   // edit later - connect to mongo  
   const invoices: any[] = []
 
@@ -20,6 +19,31 @@ export default function DashboardPage({ url, setToken }: DashboardProps) {
       navigate("/")
     }
   }, [token, navigate])
+
+  let tableContent;
+  if (invoices.length === 0) {
+    tableContent = (
+      <tr>
+        <td colSpan={7} className="px-6 py-16 text-center text-lg text-gray-500">
+          No invoices yet.
+        </td>
+      </tr>
+    )
+  } else {
+    tableContent = invoices.map((invoice, index) => (
+      <tr key={index} className="border-t">
+        <td className="px-6 py-4">{index + 1}</td>
+        <td className="px-6 py-4">{invoice.buyerName}</td>
+        <td className="px-6 py-4">{invoice.sellerName}</td>
+        <td className="px-6 py-4">{invoice.status}</td>
+        <td className="px-6 py-4">{invoice.dueDate}</td>
+        <td className="px-6 py-4">
+          {invoice.startDate} - {invoice.endDate}
+        </td>
+        <td className="px-6 py-4">${invoice.totalAmount}</td>
+      </tr>
+    ))
+  }
 
   return (
     <SidebarProvider>
@@ -100,30 +124,7 @@ export default function DashboardPage({ url, setToken }: DashboardProps) {
               </thead>
 
               <tbody>
-                {invoices.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={7}
-                      className="px-6 py-16 text-center text-lg text-gray-500"
-                    >
-                      No invoices yet.
-                    </td>
-                  </tr>
-                ) : (
-                  invoices.map((invoice, index) => (
-                    <tr key={index} className="border-t">
-                      <td className="px-6 py-4">{index + 1}</td>
-                      <td className="px-6 py-4">{invoice.buyerName}</td>
-                      <td className="px-6 py-4">{invoice.sellerName}</td>
-                      <td className="px-6 py-4">{invoice.status}</td>
-                      <td className="px-6 py-4">{invoice.dueDate}</td>
-                      <td className="px-6 py-4">
-                        {invoice.startDate} - {invoice.endDate}
-                      </td>
-                      <td className="px-6 py-4">${invoice.totalAmount}</td>
-                    </tr>
-                  ))
-                )}
+                {tableContent}
               </tbody>
             </table>
           </div>
