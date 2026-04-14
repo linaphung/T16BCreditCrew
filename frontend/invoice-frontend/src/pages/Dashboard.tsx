@@ -1,27 +1,69 @@
 import { AppSidebar } from "@/components/custom/AppSidebar"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { SidebarProvider } from "@/components/ui/sidebar"
-
-interface DashboardProps {
-  url: string
-  setToken: (token: string | null) => void
-}
+import type { DashboardProps, Invoice } from "@/types"
 
 export default function DashboardPage({ url, setToken }: DashboardProps) {
   const navigate = useNavigate()
   const token = localStorage.getItem("token")
 
-  const invoices: any[] = []
+  const [invoices, setInvoices] = useState<Invoice[]>([])
+  const [buyerFilter, setBuyerFilter] = useState("")
+  const [sellerFilter, setSellerFilter] = useState("")
+  const [statusFilter, setStatusFilter] = useState("")
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     if (!token) {
       navigate("/")
+      return
     }
+    getInvoices()
   }, [token, navigate])
 
+  async function getInvoices() {
+    if (!token) return
+    setLoading(true)
+    let query = ""
+
+    if (buyerFilter !== "") {
+      query += `buyerName=${buyerFilter}&`
+    }
+
+    if (sellerFilter !== "") {
+      query += `sellerName=${sellerFilter}&`
+    }
+
+    if (statusFilter !== "") {
+      query += `status=${statusFilter}&`
+    }
+
+    try {
+      const response = await fetch(`${url}/v2/admin/invoices?${query}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+      const data = await response.json()
+      setInvoices(data.invoices || [])
+    } catch (error) {
+      console.log(error)
+      setInvoices([])
+    }
+    setLoading(false)
+  }
+
   let tableContent
-  if (invoices.length === 0) {
+  if (loading) {
+    tableContent = (
+      <tr>
+        <td colSpan={7} className="px-6 py-16 text-center text-gray-500">
+          Loading invoices...
+        </td>
+      </tr>
+    )
+  } else if (invoices.length === 0) {
     tableContent = (
       <tr>
         <td colSpan={7} className="px-6 py-16 text-center text-gray-500">
@@ -31,16 +73,22 @@ export default function DashboardPage({ url, setToken }: DashboardProps) {
     )
   } else {
     tableContent = invoices.map((invoice, index) => (
-      <tr key={index} className="border-t">
+      <tr
+        key={invoice.invoiceId}
+        className="cursor-pointer border-t hover:bg-gray-50"
+        onClick={() => navigate(`/dashboard/${invoice.invoiceId}`)}
+      >
         <td className="px-6 py-4">{index + 1}</td>
-        <td className="px-6 py-4">{invoice.buyerName}</td>
-        <td className="px-6 py-4">{invoice.sellerName}</td>
-        <td className="px-6 py-4">{invoice.status}</td>
-        <td className="px-6 py-4">{invoice.dueDate}</td>
+        <td className="px-6 py-4">{invoice.invoiceData.buyer.name}</td>
+        <td className="px-6 py-4">{invoice.invoiceData.seller.name}</td>
+        <td className="px-6 py-4">{invoice.invoiceStatus}</td>
+        <td className="px-6 py-4">{invoice.invoiceData.dueDate}</td>
         <td className="px-6 py-4">
-          {invoice.startDate} - {invoice.endDate}
+          {invoice.invoiceData.invoicePeriod?.startDate || "-"} - {invoice.invoiceData.invoicePeriod?.endDate || "-"}
         </td>
-        <td className="px-6 py-4">${invoice.totalAmount}</td>
+        <td className="px-6 py-4">
+          ${invoice.invoiceData.payableAmount.amount}
+        </td>
       </tr>
     ))
   }
@@ -77,34 +125,68 @@ export default function DashboardPage({ url, setToken }: DashboardProps) {
                 </button>
               </div>
 
-              <div className="mb-6 flex flex-wrap gap-3">
+              <div className="mb-6 flex items-center gap-3">
                 <input
                   type="text"
                   placeholder="Search with Invoice ID"
-                  className="w-[260px] rounded-md border bg-white px-4 py-3 text-sm outline-none"
+                  value={buyerFilter}
+                  onChange={(e) => setBuyerFilter(e.target.value)}
+                  className="w-[230px] rounded-md border bg-white px-4 py-3 text-sm outline-none placeholder:text-gray-400"
                 />
 
-                <button className="rounded-md border bg-white px-4 py-3 text-sm font-medium text-gray-700">
-                  FILTER
-                </button>
-                <button className="rounded-md border bg-white px-4 py-3 text-sm text-gray-600">
-                  Buyer
-                </button>
-                <button className="rounded-md border bg-white px-4 py-3 text-sm text-gray-600">
-                  Seller
-                </button>
-                <button className="rounded-md border bg-white px-4 py-3 text-sm text-gray-600">
-                  Status
-                </button>
-                <button className="rounded-md border bg-white px-4 py-3 text-sm text-gray-600">
-                  Due Date
-                </button>
-                <button className="rounded-md border bg-white px-4 py-3 text-sm text-gray-600">
-                  Start
-                </button>
-                <button className="rounded-md border bg-white px-4 py-3 text-sm text-gray-600">
-                  End
-                </button>
+                <div className="flex items-center overflow-hidden rounded-md border bg-white text-sm text-gray-500">
+                  <button
+                    onClick={getInvoices}
+                    className="px-4 py-3 font-medium text-gray-700 hover:bg-gray-50"
+                  >
+                    FILTER
+                  </button>
+
+                  <div className="h-5 w-px bg-gray-300"></div>
+
+                  <button
+                    onClick={() => setBuyerFilter("")}
+                    className="px-4 py-3 hover:bg-gray-50"
+                  >
+                    Buyer
+                  </button>
+
+                  <div className="h-5 w-px bg-gray-300"></div>
+
+                  <button
+                    onClick={() => setSellerFilter("")}
+                    className="px-4 py-3 hover:bg-gray-50"
+                  >
+                    Seller
+                  </button>
+
+                  <div className="h-5 w-px bg-gray-300"></div>
+
+                  <button
+                    onClick={() => setStatusFilter("draft")}
+                    className="px-4 py-3 hover:bg-gray-50"
+                  >
+                    Status
+                  </button>
+
+                  <div className="h-5 w-px bg-gray-300"></div>
+
+                  <button className="px-4 py-3 hover:bg-gray-50">
+                    Due Date
+                  </button>
+
+                  <div className="h-5 w-px bg-gray-300"></div>
+
+                  <button className="px-4 py-3 hover:bg-gray-50">
+                    Start
+                  </button>
+
+                  <div className="h-5 w-px bg-gray-300"></div>
+
+                  <button className="px-4 py-3 hover:bg-gray-50">
+                    End
+                  </button>
+                </div>
               </div>
 
               <div className="overflow-hidden rounded-lg border bg-white">
@@ -127,7 +209,7 @@ export default function DashboardPage({ url, setToken }: DashboardProps) {
             </div>
           </main>
 
-          <footer className="w-full border-t bg-[#dfeaf7] px-6 py-4 flex items-center justify-between text-sm text-gray-700">
+          <footer className="flex w-full items-center justify-between border-t bg-[#dfeaf7] px-6 py-4 text-sm text-gray-700">
             <span className="font-medium text-[#1560b7]">Credit Crew</span>
             <span>
               Support & Enquiries:{" "}
