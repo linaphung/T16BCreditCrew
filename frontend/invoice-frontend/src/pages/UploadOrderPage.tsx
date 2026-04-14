@@ -3,12 +3,12 @@ import { useEffect } from "react"
 import { SidebarProvider } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/custom/AppSidebar"
 
-interface EditPageProps {
-  url: string,
+interface UploadOrderPageProps {
+  url: string
   setToken: (token: string | null) => void
 }
 
-export default function UploadOrderPage({url, setToken}: EditPageProps) {
+export default function UploadOrderPage({url, setToken}: UploadOrderPageProps) {
   const navigate = useNavigate()
   const token = localStorage.getItem('token')
   useEffect(() => {
@@ -20,7 +20,7 @@ export default function UploadOrderPage({url, setToken}: EditPageProps) {
   return (
     <SidebarProvider>
       <AppSidebar url={url} setToken={setToken}></AppSidebar>
-      <main>edit invoice</main>
+      <main>upload order doc</main>
     </SidebarProvider>
   )
 }

@@ -9,7 +9,7 @@ export default function LandingPage() {
     <div className="min-h-screen bg-white font-sans">
       <nav className="flex justify-between items-center px-10 py-4 border-b border-blue-100">
         <div className="hover:bg-blue-50 px-1">
-          <span className="text-base text-blue-900 font-semibold italic ">Ezy Invoicing</span>
+          <span className="text-base font-semibold tracking-tight text-blue-900">Ezy Invoicing</span>
         </div>
         <div className="flex gap-2">
           <Button 
@@ -31,7 +31,7 @@ export default function LandingPage() {
         <div className="inline-block border border-blue-800 px-4 py-1 rounded-lg mb-2 hover:bg-gray-200">
           <p className="text-base text-blue-900">• UBL 2.1 compliant invoicing</p>
         </div>
-        <h1 className="text-6xl font-semibold text-blue-900 mb-4">Invoicing made simple</h1>
+        <h1 className="text-6xl font-semibold text-blue-900 mb-4">Invoicing made ezy</h1>
         <p className="text-base text-grey-600 mb-4 mx-auto">
           Create, validate, manage and send invoices — everything your business needs, in one place.
         </p>
