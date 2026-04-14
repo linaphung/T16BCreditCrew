@@ -17,11 +17,18 @@ import swaggerUi from 'swagger-ui-express'
 import jsyaml from 'js-yaml'
 import fs from 'fs'
 import sgMail from '@sendgrid/mail';
+import cors from 'cors'
 
 
 dotenv.config()
 const app = express()
 app.use(express.json())
+// app.use(cors({
+//   origin: ['http://localhost:5173', 'https://t16bcreditcrew-86oh.onrender.com'],
+//   methods: ['GET', 'POST', 'PUT', 'DELETE'],
+//   allowedHeaders: ['Content-Type', 'Authorization']
+// }))
+app.use(cors())
 
 const PORT = process.env.PORT || 3000;
 const MONGODB_URI = process.env.MONGODB_URI

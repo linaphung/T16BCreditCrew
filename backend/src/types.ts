@@ -143,7 +143,7 @@ export interface InvoiceFilters {
 
 export interface GeneratedInvoice {
   invoiceId: string;
-  invoiceStatus: 'draft' | 'invalid' | 'finalised' | 'overdue' | 'sent' | 'paid';
+  invoiceStatus: 'draft' | 'invalid' | 'finalised' | 'overdue' | 'paid';
   invoiceData: InvoiceData;
   invoiceXML: string;
   isOverdue: boolean;

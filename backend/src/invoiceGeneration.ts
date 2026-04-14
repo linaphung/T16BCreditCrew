@@ -162,7 +162,7 @@ export const finaliseInvoice = async (invoiceId: string, userId: string) => {
   if (!invoice)
     throw new InvoiceNotFoundError('Invoice does not exist')
 
-  if (invoice.status === 'finalised' || invoice.status === 'sent' || invoice.status === 'paid')
+  if (invoice.status === 'finalised' || invoice.status === 'paid')
     throw new InvoiceBadRequest(`Invoice is already ${invoice.status}`)
 
   const invoiceData = invoice.invoiceData as InvoiceData
@@ -193,7 +193,7 @@ export const exportInvoice = async (invoiceId: string, userId: string) => {
 
   if (!invoice)
     throw new InvoiceNotFoundError('Invoice does not exist')
-  if (invoice.status === 'sent' || invoice.status === 'paid') {
+  if (invoice.status === 'paid') {
     return invoice.invoiceXMLString
   }
   if (invoice.status !== 'finalised' || !invoice.invoiceXMLString)
@@ -344,7 +344,7 @@ export const markAsPaid = async (invoiceId: string, userId: string) => {
 export const checkForOverdue = async(userId: string) => {
   const invoices = await Invoice.find({
     userId,
-    status: {$in : ['finalised', 'sent']},
+    status: {$in : ['finalised']},
     isOverdue: false
   })
 
