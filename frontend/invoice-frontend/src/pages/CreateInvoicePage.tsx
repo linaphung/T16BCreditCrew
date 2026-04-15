@@ -175,58 +175,87 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
     }
   }
 
-async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
-  const file = e.target.files?.[0]
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
 
-  if (!file || !token) return
+    if (!file || !token) return
 
-  const formData = new FormData()
-  formData.append("file", file)
+    const formData = new FormData()
+    formData.append("file", file)
 
-  setLoading(true)
+    setLoading(true)
 
-  try {
-    const res = await fetch(`${url}/v1/admin/order/parse`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`
-      },
-      body: formData
-    })
+    try {
+      const res = await fetch(`${url}/v1/admin/order/parse`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`
+        },
+        body: formData
+      })
 
-    const data = await res.json()
-    console.log(data)
+      const data = await res.json()
+      console.log(data)
 
-    if (!res.ok) {
-      setLoading(false)
-      return
+      if (!res.ok) {
+        alert(data.message || "Failed to parse order file")
+        setLoading(false)
+        return
+      }
+
+      setBuyerName(typeof data.buyerName === "string" ? data.buyerName : "")
+      setSellerName(typeof data.sellerName === "string" ? data.sellerName : "")
+      setPaymentTerms(typeof data.paymentTerms === "string" ? data.paymentTerms : "")
+
+      if (typeof data.dueDate === "string" && data.dueDate) {
+        const parts = data.dueDate.split("-")
+        setDueDate(`${parts[2]}/${parts[1]}/${parts[0]}`)
+        setDueDateError("")
+      } else {
+        setDueDate("")
+      }
+
+      if (typeof data.invoicePeriod?.startDate === "string" && data.invoicePeriod.startDate) {
+        const parts = data.invoicePeriod.startDate.split("-")
+        setStartDate(`${parts[2]}/${parts[1]}/${parts[0]}`)
+        setStartDateError("")
+      } else {
+        setStartDate("")
+      }
+
+      if (typeof data.invoicePeriod?.endDate === "string" && data.invoicePeriod.endDate) {
+        const parts = data.invoicePeriod.endDate.split("-")
+        setEndDate(`${parts[2]}/${parts[1]}/${parts[0]}`)
+        setEndDateError("")
+      } else {
+        setEndDate("")
+      }
+
+      if (data.orderLines && data.orderLines.length > 0) {
+        setItems(
+          data.orderLines.map((line: any) => ({
+            itemName: line.itemName || "",
+            quantity: String(line.quantity || ""),
+            unitPrice: String(line.unitPrice || "")
+          }))
+        )
+
+        setItemErrors(
+          data.orderLines.map(() => ({
+            quantity: "",
+            unitPrice: ""
+          }))
+        )
+      } else {
+        setItems([{ itemName: "", quantity: "", unitPrice: "" }])
+        setItemErrors([{ quantity: "", unitPrice: "" }])
+      }
+    } catch (err) {
+      console.log(err)
     }
 
-    setBuyerName(data.buyerName || "")
-    setSellerName(data.sellerName || "")
-    setPaymentTerms(data.paymentTerms || "")
-
-    if (data.dueDate) {
-      const parts = data.dueDate.split("-")
-      setDueDate(`${parts[2]}/${parts[1]}/${parts[0]}`)
-    }
-
-    if (data.orderLines && data.orderLines.length > 0) {
-      setItems(
-        data.orderLines.map((line: any) => ({
-          itemName: line.itemName || "",
-          quantity: String(line.quantity || ""),
-          unitPrice: String(line.unitPrice || "")
-        }))
-      )
-    } else {
-      setItems([{ itemName: "", quantity: "", unitPrice: "" }])
-    }
-  } catch (err) {
-    console.log(err)
+    setLoading(false)
   }
-  setLoading(false)
-}
 
   async function handleSaveDraft() {
     if (!token)
