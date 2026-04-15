@@ -10,14 +10,13 @@ import {
 } from "@/components/ui/sidebar"
 import { LayoutDashboard, FilePlus, Upload, LogOut } from "lucide-react"
 import { useNavigate, useLocation } from "react-router-dom"
-import axios from "axios"
 
 interface AppSideBarProps {
   url: string
   setToken: (token: string | null) => void
 }
  
-export function AppSidebar({url, setToken}: AppSideBarProps) {
+export function AppSidebar({setToken}: AppSideBarProps) {
   const navigate = useNavigate()
   const sideBarItems = [
     {label: "Dashboard", icon: <LayoutDashboard></LayoutDashboard>, navigateTo: '/dashboard'},
@@ -31,7 +30,7 @@ export function AppSidebar({url, setToken}: AppSideBarProps) {
     setToken(null)
     navigate("/")
   }
-  
+
   return (
     <Sidebar>
       <SidebarHeader className="px-8 py-4">
