@@ -2,17 +2,7 @@ import { AppSidebar } from "@/components/custom/AppSidebar"
 import { SidebarProvider } from "@/components/ui/sidebar"
 import { useNavigate } from "react-router-dom"
 import { useEffect, useRef, useState } from "react"
-
-interface CreateInvoicePageProps {
-  url: string
-  setToken: (token: string | null) => void
-}
-
-interface Item {
-  itemName: string
-  quantity: string
-  unitPrice: string
-}
+import type { CreateInvoicePageProps, Item } from "@/types"
 
 export default function CreateInvoicePage({ url, setToken }: CreateInvoicePageProps) {
   const navigate = useNavigate()
