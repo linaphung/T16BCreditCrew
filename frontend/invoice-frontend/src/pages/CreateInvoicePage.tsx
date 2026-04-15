@@ -28,9 +28,8 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    if (!token) {
+    if (!token) 
       navigate("/")
-    }
   }, [token, navigate])
 
   function validDateFormat(value: string) {
@@ -48,9 +47,8 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
   }
 
   function openFilePicker() {
-    if (fileInputRef.current) {
+    if (fileInputRef.current) 
       fileInputRef.current.click()
-    }
   }
 
   function addNewItem() {
@@ -82,64 +80,58 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
   }
 
   function updateQuantity(index: number, value: string) {
-    if (!/^\d*$/.test(value)) {
+    if (!/^\d*$/.test(value)) 
       return
-    }
-
+    
     const newItems = [...items]
     newItems[index].quantity = value
     setItems(newItems)
     const newErrors = [...itemErrors]
-    if (value === "") {
+    if (value === "")
       newErrors[index].quantity = "Quantity is required"
-    } else {
+    else
       newErrors[index].quantity = ""
-    }
     setItemErrors(newErrors)
   }
 
   function updatePrice(index: number, value: string) {
-    if (!/^\d*\.?\d*$/.test(value)) {
+    if (!/^\d*\.?\d*$/.test(value)) 
       return
-    }
+
     const newItems = [...items]
     newItems[index].unitPrice = value
     setItems(newItems)
 
     const newErrors = [...itemErrors]
-    if (value === "") {
+    if (value === "") 
       newErrors[index].unitPrice = "Price is required"
-    } else {
+    else 
       newErrors[index].unitPrice = ""
-    }
     setItemErrors(newErrors)
   }
 
   function updateDueDate(value: string) {
     setDueDate(value)
-    if (value === "" || !validDateFormat(value)) {
+    if (value === "" || !validDateFormat(value)) 
       setDueDateError("Date must be DD/MM/YYYY")
-    } else {
+    else 
       setDueDateError("")
-    }
   }
 
   function updateStartDate(value: string) {
     setStartDate(value)
-    if (value === "" || !validDateFormat(value)) {
+    if (value === "" || !validDateFormat(value)) 
       setStartDateError("Date must be DD/MM/YYYY")
-    } else {
+    else 
       setStartDateError("")
-    }
   }
 
   function updateEndDate(value: string) {
     setEndDate(value)
-    if (value === "" || !validDateFormat(value)) {
+    if (value === "" || !validDateFormat(value))
       setEndDateError("Date must be DD/MM/YYYY")
-    } else {
+    else
       setEndDateError("")
-    }
   }
 
   function getTotal() {
@@ -153,13 +145,11 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
   }
 
   function hasErrors() {
-    if (dueDateError || startDateError || endDateError) {
+    if (dueDateError || startDateError || endDateError) 
       return true
-    }
     for (const error of itemErrors) {
-      if (error.quantity || error.unitPrice) {
+      if (error.quantity || error.unitPrice) 
         return true
-      }
     }
     return false
   }
@@ -188,9 +178,8 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
 
-    if (!file || !token) {
+    if (!file || !token)
       return
-    }
 
     if (!dueDate || !validDateFormat(dueDate)) {
       setDueDateError("Date must be DD/MM/YYYY")
@@ -213,7 +202,6 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
         },
         body: formData
       })
-
       const data = await response.json()
       console.log(data)
 
@@ -221,7 +209,6 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
         setLoading(false)
         return
       }
-
       navigate(`/dashboard/${data.invoiceId}`)
     } catch (error) {
       console.log(error)
@@ -231,9 +218,8 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
   }
 
   async function handleSaveDraft() {
-    if (!token) {
+    if (!token)
       return
-    }
 
     if (hasErrors()) {
       alert("Please fix the input errors first")
@@ -255,9 +241,9 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
       const data = await response.json()
       console.log(data)
 
-      if (response.ok) {
+      if (response.ok) 
         navigate("/dashboard")
-      }
+
     } catch (error) {
       console.log(error)
     }
@@ -266,9 +252,9 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
   }
 
   async function handleCreateInvoice() {
-    if (!token) {
+    if (!token) 
       return
-    }
+  
     if (hasErrors()) {
       alert("Please fix the input errors first")
       return
