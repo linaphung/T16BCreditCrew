@@ -1,5 +1,5 @@
 import Invoice from '../models/Invoice.js'
-import { GeneratedInvoice, InvoiceData, DraftInvoiceInput, DeleteInvoiceResponse, InvoicePeriod, InvoiceFilters } from './types.js'
+import { GeneratedInvoice, InvoiceData, DraftInvoiceInput, DeleteInvoiceResponse, InvoiceFilters } from './types.js'
 import { calculateLineExtension, generateXMLString, isOverdue } from './helper.js'
 import { InvoiceBadRequest, InvoiceNotFoundError, InvalidFileError } from './errors.js'
 import { validateInvoiceHelper } from './invoiceValidation.js'
@@ -39,6 +39,7 @@ export const uploadOrderDocument = (
  * @throws {InvalidFileError} If the file is malformed or missing required fields.
  */
 export const parseOrderDocument = async (fileBuffer: Buffer) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let parsed: any
   const fileContent = fileBuffer.toString().trim()
 
@@ -135,6 +136,7 @@ export const parseOrderDocument = async (fileBuffer: Buffer) => {
 
   const orderLines = lineArray
     .filter(Boolean)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .map((line: any) => ({
       lineId:
         line?.LineItem?.ID ??
@@ -158,6 +160,7 @@ export const parseOrderDocument = async (fileBuffer: Buffer) => {
         0
       ),
     }))
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .filter((line: any) => line.itemName)
 
   if (!buyerName || !sellerName || !paymentTerms || !orderLines.length) {
