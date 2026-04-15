@@ -175,47 +175,70 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
     }
   }
 
-  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
+async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+  const file = e.target.files?.[0]
+  console.log("selected file:", file)
+  console.log("token:", token)
+  console.log("dueDate:", dueDate)
 
-    if (!file || !token)
-      return
-
-    if (!dueDate || !validDateFormat(dueDate)) {
-      setDueDateError("Date must be DD/MM/YYYY")
-      return
-    }
-
-    const formData = new FormData()
-    formData.append("file", file)
-    formData.append("issueDate", new Date().toISOString().slice(0, 10))
-    formData.append("dueDate", convertToISO(dueDate))
-    formData.append("currency", "AUD")
-
-    setLoading(true)
-
-    try {
-      const response = await fetch(`${url}/v1/admin/order/parse`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`
-        },
-        body: formData
-      })
-      const data = await response.json()
-      console.log(data)
-
-      if (!response.ok) {
-        setLoading(false)
-        return
-      }
-      navigate(`/dashboard/${data.invoiceId}`)
-    } catch (error) {
-      console.log(error)
-    }
-
-    setLoading(false)
+  if (!file) {
+    console.log("No file selected")
+    return
   }
+
+  if (!token) {
+    console.log("No token found")
+    return
+  }
+
+  if (!dueDate || !validDateFormat(dueDate)) {
+    setDueDateError("Date must be DD/MM/YYYY")
+    console.log("Invalid due date")
+    return
+  }
+
+  const formData = new FormData()
+  formData.append("file", file)
+  formData.append("issueDate", new Date().toISOString().slice(0, 10))
+  formData.append("dueDate", convertToISO(dueDate))
+  formData.append("currency", "AUD")
+
+  setLoading(true)
+
+  try {
+    const response = await fetch(`${url}/v1/admin/order/parse`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`
+      },
+      body: formData
+    })
+
+    const data = await response.json()
+
+    console.log("status:", response.status)
+    console.log("response data:", data)
+
+    if (!response.ok) {
+      alert(data.message || "Upload failed")
+      setLoading(false)
+      return
+    }
+
+    if (!data.invoiceId) {
+      console.log("No invoiceId returned from backend")
+      console.log("Full success response:", data)
+      setLoading(false)
+      return
+    }
+
+    navigate(`/dashboard/${data.invoiceId}`)
+  } catch (error) {
+    console.log("Upload error:", error)
+  }
+
+  setLoading(false)
+}
 
   async function handleSaveDraft() {
     if (!token)

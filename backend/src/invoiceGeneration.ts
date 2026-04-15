@@ -38,28 +38,24 @@ export const uploadOrderDocument = (
  * @param invoicePeriod - Optional billing period.
  * @throws {InvalidFileError} If the file is malformed or missing required fields.
  */
-export const parseOrderDocument = async (
-  fileBuffer: Buffer,
-  mimeType: string,
-  userId: string,
-  issueDate: string,
-  dueDate: string,
-  currency: string,
-  invoicePeriod?: InvoicePeriod
-): Promise<GeneratedInvoice> => {
+export const parseOrderDocument = async (fileBuffer: Buffer) => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let parsed: any
+  const fileContent = fileBuffer.toString().trim()
 
-  if (mimeType === 'application/json' || mimeType === 'text/plain') {
+  if (!fileContent)
+    throw new InvalidFileError('Uploaded file is empty')
+
+  if (fileContent.startsWith('{') || fileContent.startsWith('[')) {
     try {
-      parsed = JSON.parse(fileBuffer.toString())
+      parsed = JSON.parse(fileContent)
     } catch {
       throw new InvalidFileError('Invalid JSON file')
     }
-  } else if (mimeType === 'application/xml' || mimeType === 'text/xml') {
+  } else if (fileContent.startsWith('<')) {
     try {
       const parser = new XMLParser({ ignoreAttributes: false })
-      parsed = parser.parse(fileBuffer.toString())
+      parsed = parser.parse(fileContent)
     } catch {
       throw new InvalidFileError('Invalid XML file')
     }
@@ -69,36 +65,57 @@ export const parseOrderDocument = async (
 
   const order = parsed?.Order ?? parsed
 
-  const buyer = order?.BuyerCustomerParty?.Party?.PartyName?.Name ?? order?.buyer
-  const seller = order?.SellerSupplierParty?.Party?.PartyName?.Name ?? order?.seller
-  const paymentTerms = order?.PaymentTerms?.Note ?? order?.paymentTerms
+  const buyerName =
+    order?.BuyerCustomerParty?.Party?.PartyName?.Name ??
+    order?.buyerName ??
+    order?.buyer
 
-  // Handles both single line and array of lines
+  const sellerName =
+    order?.SellerSupplierParty?.Party?.PartyName?.Name ??
+    order?.sellerName ??
+    order?.seller
+
+  const paymentTerms =
+    order?.PaymentTerms?.Note ??
+    order?.paymentTerms
+
+  const issueDate =
+    order?.IssueDate ??
+    order?.issueDate
+
+  const dueDate =
+    order?.DueDate ??
+    order?.dueDate
+
+  const currency =
+    order?.DocumentCurrencyCode ??
+    order?.currency
+
   const rawLines = order?.OrderLine ?? order?.orderLines
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const orderLines = (Array.isArray(rawLines) ? rawLines : [rawLines]).map((line: any) => ({
-    lineId: line?.LineItem?.ID ?? line?.lineId,
-    itemName: line?.LineItem?.Item?.Name ?? line?.itemName,
-    quantity: Number(line?.LineItem?.Quantity ?? line?.quantity),
-    unitPrice: Number(line?.LineItem?.Price?.PriceAmount ?? line?.unitPrice),
-  }))
+  const lineArray = Array.isArray(rawLines) ? rawLines : [rawLines]
 
-  if (!buyer || !seller || !paymentTerms || !orderLines.length)
+  const orderLines = lineArray
+    .filter(Boolean)
+    .map((line: any) => ({
+      lineId: line?.LineItem?.ID ?? line?.lineId,
+      itemName: line?.LineItem?.Item?.Name ?? line?.itemName,
+      quantity: Number(line?.LineItem?.Quantity ?? line?.quantity ?? 0),
+      unitPrice: Number(line?.LineItem?.Price?.PriceAmount ?? line?.unitPrice ?? 0),
+    }))
+    .filter((line: any) => line.itemName)
+
+  if (!buyerName || !sellerName || !paymentTerms || !orderLines.length)
     throw new InvalidFileError('Missing required fields in order document')
 
-  if (!issueDate || !dueDate || !currency)
-    throw new InvalidFileError('Missing required fields: issueDate, dueDate, currency')
-
-  return generateInvoiceDraft({
+  return {
+    buyerName,
+    sellerName,
+    paymentTerms,
     issueDate,
     dueDate,
     currency,
-    invoicePeriod,
-    paymentTerms,
-    buyer,
-    seller,
     orderLines
-  }, userId)
+  }
 }
 
 /**
