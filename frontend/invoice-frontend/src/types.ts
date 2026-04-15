@@ -36,3 +36,8 @@ export interface Item {
   quantity: string
   unitPrice: string
 }
+
+export interface ItemError {
+  quantity: string
+  unitPrice: string
+}

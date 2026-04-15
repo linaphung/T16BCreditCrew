@@ -2,7 +2,7 @@ import { AppSidebar } from "@/components/custom/AppSidebar"
 import { SidebarProvider } from "@/components/ui/sidebar"
 import { useNavigate } from "react-router-dom"
 import { useEffect, useRef, useState } from "react"
-import type { CreateInvoicePageProps, Item } from "@/types"
+import type { CreateInvoicePageProps, Item, ItemError } from "@/types"
 
 export default function CreateInvoicePage({ url, setToken }: CreateInvoicePageProps) {
   const navigate = useNavigate()
@@ -18,6 +18,13 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
   const [items, setItems] = useState<Item[]>([
     { itemName: "", quantity: "", unitPrice: "" }
   ])
+  const [itemErrors, setItemErrors] = useState<ItemError[]>([
+    { quantity: "", unitPrice: "" }
+  ])
+
+  const [dueDateError, setDueDateError] = useState("")
+  const [startDateError, setStartDateError] = useState("")
+  const [endDateError, setEndDateError] = useState("")
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
@@ -25,6 +32,20 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
       navigate("/")
     }
   }, [token, navigate])
+
+  function validDateFormat(value: string) {
+    return /^\d{2}\/\d{2}\/\d{4}$/.test(value)
+  }
+
+  function convertToISO(date: string) {
+    if (!date) return ""
+
+    const parts = date.split("/")
+    if (parts.length !== 3) return ""
+
+    const [day, month, year] = parts
+    return `${year}-${month}-${day}`
+  }
 
   function openFilePicker() {
     if (fileInputRef.current) {
@@ -35,17 +56,23 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
   function addNewItem() {
     const newItem = { itemName: "", quantity: "", unitPrice: "" }
     setItems([...items, newItem])
+    setItemErrors([...itemErrors, { quantity: "", unitPrice: "" }])
   }
 
   function removeItem(index: number) {
     if (items.length === 1) {
       setItems([{ itemName: "", quantity: "", unitPrice: "" }])
+      setItemErrors([{ quantity: "", unitPrice: "" }])
       return
     }
 
     const newItems = [...items]
     newItems.splice(index, 1)
     setItems(newItems)
+
+    const newErrors = [...itemErrors]
+    newErrors.splice(index, 1)
+    setItemErrors(newErrors)
   }
 
   function updateItem(index: number, field: keyof Item, value: string) {
@@ -54,29 +81,100 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
     setItems(newItems)
   }
 
+  function updateQuantity(index: number, value: string) {
+    if (!/^\d*$/.test(value)) {
+      return
+    }
+
+    const newItems = [...items]
+    newItems[index].quantity = value
+    setItems(newItems)
+    const newErrors = [...itemErrors]
+    if (value === "") {
+      newErrors[index].quantity = "Quantity is required"
+    } else {
+      newErrors[index].quantity = ""
+    }
+    setItemErrors(newErrors)
+  }
+
+  function updatePrice(index: number, value: string) {
+    if (!/^\d*\.?\d*$/.test(value)) {
+      return
+    }
+    const newItems = [...items]
+    newItems[index].unitPrice = value
+    setItems(newItems)
+
+    const newErrors = [...itemErrors]
+    if (value === "") {
+      newErrors[index].unitPrice = "Price is required"
+    } else {
+      newErrors[index].unitPrice = ""
+    }
+    setItemErrors(newErrors)
+  }
+
+  function updateDueDate(value: string) {
+    setDueDate(value)
+    if (value === "" || !validDateFormat(value)) {
+      setDueDateError("Date must be DD/MM/YYYY")
+    } else {
+      setDueDateError("")
+    }
+  }
+
+  function updateStartDate(value: string) {
+    setStartDate(value)
+    if (value === "" || !validDateFormat(value)) {
+      setStartDateError("Date must be DD/MM/YYYY")
+    } else {
+      setStartDateError("")
+    }
+  }
+
+  function updateEndDate(value: string) {
+    setEndDate(value)
+    if (value === "" || !validDateFormat(value)) {
+      setEndDateError("Date must be DD/MM/YYYY")
+    } else {
+      setEndDateError("")
+    }
+  }
+
   function getTotal() {
     let total = 0
-
     for (const item of items) {
       const quantity = Number(item.quantity) || 0
       const unitPrice = Number(item.unitPrice) || 0
       total += quantity * unitPrice
     }
-
     return total.toFixed(2)
+  }
+
+  function hasErrors() {
+    if (dueDateError || startDateError || endDateError) {
+      return true
+    }
+    for (const error of itemErrors) {
+      if (error.quantity || error.unitPrice) {
+        return true
+      }
+    }
+    return false
   }
 
   function makeInvoiceBody() {
     return {
       issueDate: new Date().toISOString().slice(0, 10),
-      dueDate: dueDate,
+      dueDate: convertToISO(dueDate),
       currency: "AUD",
       paymentTerms: paymentTerms,
       buyer: buyerName,
       seller: sellerName,
       invoicePeriod: {
-        startDate: startDate,
-        endDate: endDate
+        startDate: convertToISO(startDate),
+        endDate: convertToISO(endDate)
       },
       orderLines: items.map((item, index) => ({
         lineId: String(index + 1),
@@ -94,10 +192,15 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
       return
     }
 
+    if (!dueDate || !validDateFormat(dueDate)) {
+      setDueDateError("Date must be DD/MM/YYYY")
+      return
+    }
+
     const formData = new FormData()
     formData.append("file", file)
     formData.append("issueDate", new Date().toISOString().slice(0, 10))
-    formData.append("dueDate", dueDate)
+    formData.append("dueDate", convertToISO(dueDate))
     formData.append("currency", "AUD")
 
     setLoading(true)
@@ -132,6 +235,11 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
       return
     }
 
+    if (hasErrors()) {
+      alert("Please fix the input errors first")
+      return
+    }
+
     setLoading(true)
 
     try {
@@ -161,7 +269,10 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
     if (!token) {
       return
     }
-
+    if (hasErrors()) {
+      alert("Please fix the input errors first")
+      return
+    }
     setLoading(true)
 
     try {
@@ -173,6 +284,7 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
         },
         body: JSON.stringify(makeInvoiceBody())
       })
+
       const createData = await createResponse.json()
       console.log(createData)
 
@@ -182,6 +294,7 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
       }
 
       const invoiceId = createData.result.invoiceId
+
       const finaliseResponse = await fetch(`${url}/v1/admin/invoice/finalise/${invoiceId}`, {
         method: "PUT",
         headers: {
@@ -191,14 +304,17 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
 
       const finaliseData = await finaliseResponse.json()
       console.log(finaliseData)
+
       if (!finaliseResponse.ok) {
         setLoading(false)
         return
       }
+
       navigate(`/dashboard/${invoiceId}`)
     } catch (error) {
       console.log(error)
     }
+
     setLoading(false)
   }
 
@@ -255,41 +371,56 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
 
                   <div>
                     <label className="mb-1 block text-sm font-semibold text-gray-700">
-                      Due Date [YYYY-MM-DD]
+                      Due Date [DD/MM/YYYY]
                     </label>
                     <input
                       type="text"
                       value={dueDate}
-                      onChange={(e) => setDueDate(e.target.value)}
-                      placeholder="Enter due date"
-                      className="w-full rounded-md border border-gray-300 bg-white px-4 py-3 text-sm outline-none"
+                      onChange={(e) => updateDueDate(e.target.value)}
+                      placeholder="DD/MM/YYYY"
+                      className={`w-full rounded-md border px-4 py-3 text-sm outline-none ${
+                        dueDateError ? "border-red-500 bg-red-50" : "border-gray-300 bg-white"
+                      }`}
                     />
+                    {dueDateError && (
+                      <p className="mt-1 text-sm text-red-500">{dueDateError}</p>
+                    )}
                   </div>
 
                   <div>
                     <label className="mb-1 block text-sm font-semibold text-gray-700">
-                      Start Date [YYYY-MM-DD]
+                      Start Date [DD/MM/YYYY]
                     </label>
                     <input
                       type="text"
                       value={startDate}
-                      onChange={(e) => setStartDate(e.target.value)}
-                      placeholder="Enter start date"
-                      className="w-full rounded-md border border-gray-300 bg-white px-4 py-3 text-sm outline-none"
+                      onChange={(e) => updateStartDate(e.target.value)}
+                      placeholder="DD/MM/YYYY"
+                      className={`w-full rounded-md border px-4 py-3 text-sm outline-none ${
+                        startDateError ? "border-red-500 bg-red-50" : "border-gray-300 bg-white"
+                      }`}
                     />
+                    {startDateError && (
+                      <p className="mt-1 text-sm text-red-500">{startDateError}</p>
+                    )}
                   </div>
 
                   <div>
                     <label className="mb-1 block text-sm font-semibold text-gray-700">
-                      End Date [YYYY-MM-DD]
+                      End Date [DD/MM/YYYY]
                     </label>
                     <input
                       type="text"
                       value={endDate}
-                      onChange={(e) => setEndDate(e.target.value)}
-                      placeholder="Enter end date"
-                      className="w-full rounded-md border border-gray-300 bg-white px-4 py-3 text-sm outline-none"
+                      onChange={(e) => updateEndDate(e.target.value)}
+                      placeholder="DD/MM/YYYY"
+                      className={`w-full rounded-md border px-4 py-3 text-sm outline-none ${
+                        endDateError ? "border-red-500 bg-red-50" : "border-gray-300 bg-white"
+                      }`}
                     />
+                    {endDateError && (
+                      <p className="mt-1 text-sm text-red-500">{endDateError}</p>
+                    )}
                   </div>
 
                   <div>
@@ -347,10 +478,19 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
                           <input
                             type="text"
                             value={item.quantity}
-                            onChange={(e) => updateItem(index, "quantity", e.target.value)}
+                            onChange={(e) => updateQuantity(index, e.target.value)}
                             placeholder="Enter quantity"
-                            className="w-full rounded-md border border-gray-300 bg-white px-4 py-3 text-sm outline-none"
+                            className={`w-full rounded-md border px-4 py-3 text-sm outline-none ${
+                              itemErrors[index]?.quantity
+                                ? "border-red-500 bg-red-50"
+                                : "border-gray-300 bg-white"
+                            }`}
                           />
+                          {itemErrors[index]?.quantity && (
+                            <p className="mt-1 text-sm text-red-500">
+                              {itemErrors[index].quantity}
+                            </p>
+                          )}
                         </div>
 
                         <div>
@@ -360,10 +500,19 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
                           <input
                             type="text"
                             value={item.unitPrice}
-                            onChange={(e) => updateItem(index, "unitPrice", e.target.value)}
+                            onChange={(e) => updatePrice(index, e.target.value)}
                             placeholder="Enter price"
-                            className="w-full rounded-md border border-gray-300 bg-white px-4 py-3 text-sm outline-none"
+                            className={`w-full rounded-md border px-4 py-3 text-sm outline-none ${
+                              itemErrors[index]?.unitPrice
+                                ? "border-red-500 bg-red-50"
+                                : "border-gray-300 bg-white"
+                            }`}
                           />
+                          {itemErrors[index]?.unitPrice && (
+                            <p className="mt-1 text-sm text-red-500">
+                              {itemErrors[index].unitPrice}
+                            </p>
+                          )}
                         </div>
                       </div>
                     ))}
