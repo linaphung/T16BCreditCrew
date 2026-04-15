@@ -63,9 +63,9 @@ export const uploadOrder = (fileBuffer: Buffer, mimeType: string) => {
   }
 }
 
-export const parseOrder = async (fileBuffer: Buffer, mimeType: string, userId: string, issueDate: string, dueDate: string, currency: string, invoicePeriod?: InvoicePeriod) => {
+export const parseOrder = async (fileBuffer: Buffer) => {
   try {
-    const body = await parseOrderDocument(fileBuffer, mimeType, userId, issueDate, dueDate, currency, invoicePeriod)
+    const body = await parseOrderDocument(fileBuffer)
     return { body, statusCode: 200 }
   } catch (error) {
     const err = error as Error & { statusCode?: number }
