@@ -24,7 +24,7 @@ function App() {
         <Route path='/dashboard/:invoiceId' element={<ViewInvoicePage url={url} setToken={setToken}/>}></Route>
         <Route path='/dashboard/create' element={<CreateInvoicePage url={url} setToken={setToken}/>}></Route>
         <Route path='/dashboard/upload-order' element={<UploadOrderPage url={url} setToken={setToken}/>}></Route>
-        <Route path='/dashboard/:invoiceId/edit' element={<EditInvoicePage url={url} setToken={setToken}/>}></Route>
+        <Route path="/invoice/edit/:invoiceId" element={<EditInvoicePage url={url} />} />
       </Routes>
     </BrowserRouter>
   )
