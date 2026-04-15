@@ -41,3 +41,9 @@ export interface ItemError {
   quantity: string
   unitPrice: string
 }
+
+export type ParsedOrderLine = {
+  itemName?: string
+  quantity?: number
+  unitPrice?: number
+}

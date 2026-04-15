@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useNavigate} from "react-router-dom"
 import { useEffect } from "react"
 import { SidebarProvider } from "@/components/ui/sidebar"

@@ -2,7 +2,7 @@ import { AppSidebar } from "@/components/custom/AppSidebar"
 import { SidebarProvider } from "@/components/ui/sidebar"
 import { useNavigate } from "react-router-dom"
 import { useEffect, useRef, useState } from "react"
-import type { CreateInvoicePageProps, Item, ItemError } from "@/types"
+import type { CreateInvoicePageProps, Item, ItemError, ParsedOrderLine } from "@/types"
 
 export default function CreateInvoicePage({ url, setToken }: CreateInvoicePageProps) {
   const navigate = useNavigate()
@@ -233,7 +233,7 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
 
       if (data.orderLines && data.orderLines.length > 0) {
         setItems(
-          data.orderLines.map((line: any) => ({
+          data.orderLines.map((line: ParsedOrderLine) => ({
             itemName: line.itemName || "",
             quantity: String(line.quantity || ""),
             unitPrice: String(line.unitPrice || "")

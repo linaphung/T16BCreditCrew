@@ -12,7 +12,7 @@ import UploadOrderPage from './pages/UploadOrderPage'
 const url="http://localhost:3000"
 // const url="https://t16bcreditcrew-86oh.onrender.com"
 function App() {
-  const [token, setToken] = useState(localStorage.getItem('token'))
+  const [, setToken] = useState(localStorage.getItem('token'))
 
   return (
     <BrowserRouter>
