@@ -39,8 +39,8 @@ export const emailInvoice = async(invoiceId: string, userId: string, email: stri
         disposition: 'attachment'
       }]
     })
-  } catch (error){
-    console.error('SendGrid error:', error)
+  } catch (error: any) {
+    console.error('SendGrid error:', error?.response?.body || error?.message || error)
     throw new InvoiceBadRequest('Failed to send email')
   }
 

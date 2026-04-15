@@ -138,10 +138,12 @@ export const parseOrderDocument = async (fileBuffer: Buffer) => {
     .filter(Boolean)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .map((line: any) => ({
-      lineId:
+      lineId: String(
         line?.LineItem?.ID ??
         line?.lineId ??
-        "",
+        line?.LineId ??
+        ""
+      ),
       itemName:
         line?.LineItem?.Item?.Name ??
         line?.itemName ??

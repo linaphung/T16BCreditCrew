@@ -10,7 +10,6 @@ describe('parseOrderDocument', () => {
     }))
 
     const result = await parseOrder(fileBuffer)
-
     expect(result.statusCode).toStrictEqual(200)
     expect(result.body).toStrictEqual({
       buyerName: 'test buyer',
@@ -53,7 +52,6 @@ describe('parseOrderDocument', () => {
       </Order>`)
 
     const result = await parseOrder(fileBuffer)
-
     expect(result.statusCode).toStrictEqual(200)
     expect(result.body).toStrictEqual({
       buyerName: 'test buyer',
@@ -75,10 +73,9 @@ describe('parseOrderDocument', () => {
   test('INVALID_FILE, unsupported file format', async () => {
     const fileBuffer = Buffer.from('some content')
     const result = await parseOrder(fileBuffer)
-
     expect(result.statusCode).toStrictEqual(400)
     expect(result.body).toStrictEqual({
-      error: 'InvalidFileError',
+      error: 'INVALID_FILE',
       message: expect.any(String)
     })
   })
@@ -86,10 +83,9 @@ describe('parseOrderDocument', () => {
   test('INVALID_FILE, invalid JSON file', async () => {
     const fileBuffer = Buffer.from('not valid json')
     const result = await parseOrder(fileBuffer)
-
     expect(result.statusCode).toStrictEqual(400)
     expect(result.body).toStrictEqual({
-      error: 'InvalidFileError',
+      error: 'INVALID_FILE',
       message: expect.any(String)
     })
   })
@@ -97,10 +93,9 @@ describe('parseOrderDocument', () => {
   test('INVALID_FILE, missing required fields in order document', async () => {
     const fileBuffer = Buffer.from(JSON.stringify({ buyer: 'test buyer' }))
     const result = await parseOrder(fileBuffer)
-
     expect(result.statusCode).toStrictEqual(400)
     expect(result.body).toStrictEqual({
-      error: 'InvalidFileError',
+      error: 'INVALID_FILE',
       message: expect.any(String)
     })
   })
