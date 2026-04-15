@@ -13,6 +13,11 @@ export type ViewInvoiceProps = {
   setToken: React.Dispatch<React.SetStateAction<string>>
 }
 
+export type EditInvoicePageProps = {
+  url: string
+}
+
+
 export interface Invoice {
   invoiceId: string
   invoiceStatus: string
@@ -87,4 +92,11 @@ export type InvoiceResponse = {
   invoiceData: InvoiceData
   invoiceXML: string
   isOverdue: boolean
+}
+
+export type EditableItem = {
+  lineId: string
+  itemName: string
+  quantity: string
+  unitPrice: string
 }
