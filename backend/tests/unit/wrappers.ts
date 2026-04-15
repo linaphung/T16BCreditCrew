@@ -1,7 +1,7 @@
 import { adminRegisterUser, adminAuthLogin, adminAuthLogout, adminUserDetails, adminUserDetailsUpdate } from '../../src/auth.js'
 import { generateInvoiceDraft, uploadOrderDocument, parseOrderDocument, finaliseInvoice, exportInvoice, getInvoice, getAllInvoices, updateInvoice, deleteInvoice, checkForOverdue, markAsPaid } from '../../src/invoiceGeneration.js'
 import { validateInvoiceHelper, validateInvoice } from '../../src/invoiceValidation.js'
-import { UserUpdate, DraftInvoiceInput, InvoiceData, InvoicePeriod } from '../../src/types.js'
+import { UserUpdate, DraftInvoiceInput, InvoiceData } from '../../src/types.js'
 
 export const register = async (email: string, businessName: string, abn: string, password: string) => {
   try {
