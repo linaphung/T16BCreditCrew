@@ -26,25 +26,12 @@ export function AppSidebar({url, setToken}: AppSideBarProps) {
   ]
   const location = useLocation()
 
-  const handleLogout = async() => {
-    try {
-      const token = localStorage.getItem('token')
-      await axios.post(`${url}/v1/admin/logout`, {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-            
-      localStorage.removeItem('token')
-      setToken(null)
-      navigate('/')
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        alert(error.response?.data?.message || 'Login failed')
-      } else {
-        alert('Logout Failed')
-      }
-      console.log(error)
-    }
+  const handleLogout = () => {
+    localStorage.removeItem("token")
+    setToken(null)
+    navigate("/")
   }
+  
   return (
     <Sidebar>
       <SidebarHeader className="px-8 py-4">
