@@ -126,7 +126,6 @@ export default function DashboardPage({ url, setToken }: DashboardProps) {
                 </button>
               </div>
 
-              {/* Filters */}
               <div className="mb-5 flex flex-wrap items-center gap-2">
                 <input
                   type="text"
