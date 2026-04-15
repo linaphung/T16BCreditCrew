@@ -3,6 +3,11 @@ export interface DashboardProps {
   setToken: (token: string | null) => void
 }
 
+export interface CreateInvoicePageProps {
+  url: string
+  setToken: (token: string | null) => void
+}
+
 export interface Invoice {
   invoiceId: string
   invoiceStatus: string
@@ -24,4 +29,21 @@ export interface Invoice {
     }
   }
   isOverdue: boolean
+}
+
+export interface Item {
+  itemName: string
+  quantity: string
+  unitPrice: string
+}
+
+export interface ItemError {
+  quantity: string
+  unitPrice: string
+}
+
+export type ParsedOrderLine = {
+  itemName?: string
+  quantity?: number
+  unitPrice?: number
 }

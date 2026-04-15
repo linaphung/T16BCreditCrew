@@ -1,10 +1,10 @@
- import axios from 'axios'
+import axios from 'axios'
 import FormData from 'form-data'
 import fs from 'fs'
 import path from 'path'
 
-const PORT = process.env.PORT || 3000;
-const SERVER_URL = `http://localhost:${PORT}`;
+const PORT = process.env.PORT || 3000
+const SERVER_URL = `http://localhost:${PORT}`
 
 const registerAndLogin = async () => {
   const email = `test_${Math.random().toString(36).substring(2, 10)}@gmail.com`
@@ -15,23 +15,19 @@ const registerAndLogin = async () => {
     abn: '12345678901',
     password
   })
-  const loginRes = await axios.post(`${SERVER_URL}/v1/admin/login`, { email, password })
+
+  const loginRes = await axios.post(`${SERVER_URL}/v1/admin/login`, {
+    email,
+    password
+  })
+
   return loginRes.data.token
 }
 
-const createForm = (filename: string, extraFields?: Record<string, string>) => {
+const createForm = (filename: string) => {
   const form = new FormData()
   form.append('file', fs.createReadStream(path.join('tests/fixtures', filename)))
-  if (extraFields) {
-    Object.entries(extraFields).forEach(([key, value]) => form.append(key, value))
-  }
   return form
-}
-
-const parseFields = {
-  issueDate: '2026-03-15',
-  dueDate: '2026-03-30',
-  currency: 'AUD'
 }
 
 describe('test parse order document', () => {
@@ -42,7 +38,8 @@ describe('test parse order document', () => {
   })
 
   test('INVALID_TOKEN, no token provided', async () => {
-    const form = createForm('order.json', parseFields)
+    const form = createForm('order.json')
+
     const res = await axios.post(`${SERVER_URL}/v1/admin/order/parse`, form, {
       headers: { ...form.getHeaders() },
       validateStatus: () => true
@@ -61,7 +58,8 @@ describe('test parse order document', () => {
   })
 
   test('INVALID_FILE, missing required fields in order document', async () => {
-    const form = createForm('invalid_order.json', parseFields)
+    const form = createForm('invalid_order.json')
+
     const res = await axios.post(`${SERVER_URL}/v1/admin/order/parse`, form, {
       headers: { ...form.getHeaders(), Authorization: `Bearer ${token}` },
       validateStatus: () => true
@@ -70,39 +68,47 @@ describe('test parse order document', () => {
     expect(res.data.error).toBe('INVALID_FILE')
   })
 
-  test('INVALID_FILE, missing issueDate, dueDate or currency', async () => {
+  test('successfully parses a JSON order document', async () => {
     const form = createForm('order.json')
-    const res = await axios.post(`${SERVER_URL}/v1/admin/order/parse`, form, {
-      headers: { ...form.getHeaders(), Authorization: `Bearer ${token}` },
-      validateStatus: () => true
-    })
-    expect(res.status).toBe(400)
-    expect(res.data.error).toBe('INVALID_FILE')
-  })
 
-  test('successfully parses a JSON order and creates a draft invoice', async () => {
-    const form = createForm('order.json', parseFields)
     const res = await axios.post(`${SERVER_URL}/v1/admin/order/parse`, form, {
       headers: { ...form.getHeaders(), Authorization: `Bearer ${token}` }
     })
     expect(res.status).toBe(200)
-    expect(res.data.invoiceId).toBeDefined()
-    expect(res.data.invoiceStatus).toBe('draft')
-    expect(res.data.invoiceData.buyer.name).toBe('test buyer')
-    expect(res.data.invoiceData.seller.name).toBe('test business')
-    expect(res.data.invoiceData.paymentTerms).toBe('payment due within 5 days')
+    expect(res.data.buyerName).toBe('test buyer')
+    expect(res.data.sellerName).toBe('test business')
+    expect(res.data.paymentTerms).toBe('payment due within 5 days')
+    expect(res.data.issueDate).toBe('')
+    expect(res.data.dueDate).toBe('')
+    expect(res.data.currency).toBe('AUD')
+    expect(res.data.invoicePeriod).toStrictEqual({
+      startDate: '',
+      endDate: ''
+    })
+    expect(res.data.orderLines).toStrictEqual([
+      { lineId: '1', itemName: 'cat', quantity: 100, unitPrice: 10 }
+    ])
   })
 
-  test('successfully parses an XML order and creates a draft invoice', async () => {
-    const form = createForm('order.xml', parseFields)
+  test('successfully parses an XML order document', async () => {
+    const form = createForm('order.xml')
+    
     const res = await axios.post(`${SERVER_URL}/v1/admin/order/parse`, form, {
       headers: { ...form.getHeaders(), Authorization: `Bearer ${token}` }
     })
     expect(res.status).toBe(200)
-    expect(res.data.invoiceId).toBeDefined()
-    expect(res.data.invoiceStatus).toBe('draft')
-    expect(res.data.invoiceData.buyer.name).toBe('test buyer')
-    expect(res.data.invoiceData.seller.name).toBe('test business')
-    expect(res.data.invoiceData.paymentTerms).toBe('payment due within 5 days')
+    expect(res.data.buyerName).toBe('test buyer')
+    expect(res.data.sellerName).toBe('test business')
+    expect(res.data.paymentTerms).toBe('payment due within 5 days')
+    expect(res.data.issueDate).toBe('')
+    expect(res.data.dueDate).toBe('')
+    expect(res.data.currency).toBe('AUD')
+    expect(res.data.invoicePeriod).toStrictEqual({
+      startDate: '',
+      endDate: ''
+    })
+    expect(res.data.orderLines).toStrictEqual([
+      { lineId: '1', itemName: 'cat', quantity: 100, unitPrice: 10 }
+    ])
   })
 })

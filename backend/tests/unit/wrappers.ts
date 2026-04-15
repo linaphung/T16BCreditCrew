@@ -1,7 +1,7 @@
 import { adminRegisterUser, adminAuthLogin, adminAuthLogout, adminUserDetails, adminUserDetailsUpdate } from '../../src/auth.js'
 import { generateInvoiceDraft, uploadOrderDocument, parseOrderDocument, finaliseInvoice, exportInvoice, getInvoice, getAllInvoices, updateInvoice, deleteInvoice, checkForOverdue, markAsPaid } from '../../src/invoiceGeneration.js'
 import { validateInvoiceHelper, validateInvoice } from '../../src/invoiceValidation.js'
-import { UserUpdate, DraftInvoiceInput, InvoiceData, InvoicePeriod } from '../../src/types.js'
+import { UserUpdate, DraftInvoiceInput, InvoiceData } from '../../src/types.js'
 
 export const register = async (email: string, businessName: string, abn: string, password: string) => {
   try {
@@ -63,9 +63,9 @@ export const uploadOrder = (fileBuffer: Buffer, mimeType: string) => {
   }
 }
 
-export const parseOrder = async (fileBuffer: Buffer, mimeType: string, userId: string, issueDate: string, dueDate: string, currency: string, invoicePeriod?: InvoicePeriod) => {
+export const parseOrder = async (fileBuffer: Buffer) => {
   try {
-    const body = await parseOrderDocument(fileBuffer, mimeType, userId, issueDate, dueDate, currency, invoicePeriod)
+    const body = await parseOrderDocument(fileBuffer)
     return { body, statusCode: 200 }
   } catch (error) {
     const err = error as Error & { statusCode?: number }

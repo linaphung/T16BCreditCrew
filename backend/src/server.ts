@@ -162,26 +162,19 @@ app.post('/v1/admin/order/upload', authenticate, upload.single('file'), async (r
 app.post('/v1/admin/order/parse', authenticate, upload.single('file'), async (req: Request, res: Response) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ error: 'MISSING_FILE', message: 'No file uploaded' })
+      return res.status(400).json({
+        error: 'MISSING_FILE',
+        message: 'No file uploaded'
+      })
     }
-    const { issueDate, dueDate, currency, invoicePeriod } = req.body
-    const user = req.user
-    const userId = user!.adminId
-
-    const result = await parseOrderDocument(
-      req.file.buffer,
-      req.file.mimetype,
-      userId,
-      issueDate,
-      dueDate,
-      currency,
-      invoicePeriod
-    )
-
+    const result = await parseOrderDocument(req.file.buffer)
     return res.status(200).json(result)
   } catch (error) {
     const err = error as Error
-    return res.status(400).json({ error: err.name, message: err.message })
+    return res.status(400).json({
+      error: err.name,
+      message: err.message
+    })
   }
 })
 
