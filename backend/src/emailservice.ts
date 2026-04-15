@@ -39,6 +39,7 @@ export const emailInvoice = async(invoiceId: string, userId: string, email: stri
         disposition: 'attachment'
       }]
     })
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     console.error('SendGrid error:', error?.response?.body || error?.message || error)
     throw new InvoiceBadRequest('Failed to send email')
