@@ -96,14 +96,22 @@ export const parseOrderDocument = async (fileBuffer: Buffer) => {
   const rawPaymentTerms =
     order?.PaymentTerms?.Note ??
     order?.paymentTerms ??
-    order?.PaymentTerms ??
-    order?.notes ??
-    order?.Notes
+    order?.PaymentTerms
 
   const paymentTerms =
     typeof rawPaymentTerms === 'string'
       ? rawPaymentTerms
       : rawPaymentTerms?.note ?? rawPaymentTerms?.Note ?? ''
+
+  const rawNotes =
+    order?.notes ??
+    order?.Notes ??
+    order?.Note
+
+  const notes =
+    typeof rawNotes === 'string'
+      ? rawNotes
+      : rawNotes?.text ?? ''
 
   const issueDate =
     order?.IssueDate ??
@@ -174,6 +182,7 @@ export const parseOrderDocument = async (fileBuffer: Buffer) => {
         0
       ),
     }))
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .filter((line: any) => line.itemName)
 
   if (!buyerName || !sellerName || !orderLines.length) 
@@ -183,6 +192,7 @@ export const parseOrderDocument = async (fileBuffer: Buffer) => {
     buyer: buyerName,
     seller: sellerName,
     paymentTerms,
+    notes,
     issueDate,
     dueDate,
     currency,
@@ -206,6 +216,7 @@ export const generateInvoiceDraft = async (
     issueDate: input.issueDate,
     dueDate: input.dueDate,
     paymentTerms: input.paymentTerms,
+    notes: input.notes,
     invoicePeriod: input.invoicePeriod ? {
       startDate: input.invoicePeriod.startDate,
       endDate: input.invoicePeriod.endDate,

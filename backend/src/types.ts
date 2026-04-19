@@ -73,6 +73,7 @@ export interface DraftInvoiceInput {
   issueDate: string,
   invoicePeriod?: InvoicePeriod
   dueDate: string,
+  notes?: string,
   paymentTerms: string,
   buyer: string,
   seller: string,
@@ -109,6 +110,7 @@ export interface InvoiceData {
   issueDate: string,
   dueDate: string,
   paymentTerms: string,
+  notes?: string,
   invoicePeriod?: InvoicePeriod,
   buyer: {
     name: string

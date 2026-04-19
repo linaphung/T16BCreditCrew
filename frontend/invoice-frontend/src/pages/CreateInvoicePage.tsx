@@ -15,6 +15,7 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
   const [startDate, setStartDate] = useState("")
   const [endDate, setEndDate] = useState("")
   const [paymentTerms, setPaymentTerms] = useState("")
+  const [notes, setNotes] = useState("")
   const [items, setItems] = useState<Item[]>([
     { itemName: "", quantity: "", unitPrice: "" }
   ])
@@ -36,7 +37,7 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
     return /^\d{2}\/\d{2}\/\d{4}$/.test(value)
   }
 
-  function dateFromBackend(date: string) {
+  function toISODate(date: string) {
     if (!date) return ""
 
     const parts = date.split("/")
@@ -46,7 +47,7 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
     return `${year}-${month}-${day}`
   }
 
-  function inputeDateFrontend(date: string) {
+  function fromISODate(date: string) {
   if (!date) return ""
 
   const parts = date.split("-")
@@ -167,14 +168,15 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
   function makeInvoiceBody() {
     return {
       issueDate: new Date().toISOString().slice(0, 10),
-      dueDate: dateFromBackend(dueDate),
+      dueDate: toISODate(dueDate),
       currency: "AUD",
-      paymentTerms: paymentTerms,
+      paymentTerms,
+      notes,
       buyer: buyerName,
       seller: sellerName,
       invoicePeriod: {
-        startDate: dateFromBackend(startDate),
-        endDate: dateFromBackend(endDate)
+        startDate: toISODate(startDate),
+        endDate: toISODate(endDate)
       },
       orderLines: items.map((item, index) => ({
         lineId: String(index + 1),
@@ -216,29 +218,30 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
       setBuyerName(typeof data.buyer === "string" ? data.buyer : "")
       setSellerName(typeof data.seller === "string" ? data.seller : "")
       setPaymentTerms(typeof data.paymentTerms === "string" ? data.paymentTerms : "")
+      setNotes(typeof data.notes === "string" ? data.notes : "")
 
       if (typeof data.dueDate === "string" && data.dueDate) {
-        setDueDate(inputeDateFrontend(data.dueDate))
+        setDueDate(fromISODate(data.dueDate))
         setDueDateError("")
       } else {
         setDueDate("")
       }
 
       if (typeof data.invoicePeriod?.startDate === "string" && data.invoicePeriod.startDate) {
-        setStartDate(inputeDateFrontend(data.invoicePeriod.startDate))
+        setStartDate(fromISODate(data.invoicePeriod.startDate))
         setStartDateError("")
       } else if (typeof data.issueDate === "string" && data.issueDate) {
-        setStartDate(inputeDateFrontend(data.issueDate))
+        setStartDate(fromISODate(data.issueDate))
         setStartDateError("")
       } else {
         setStartDate("")
       }
 
       if (typeof data.invoicePeriod?.endDate === "string" && data.invoicePeriod.endDate) {
-        setEndDate(inputeDateFrontend(data.invoicePeriod.endDate))
+        setEndDate(fromISODate(data.invoicePeriod.endDate))
         setEndDateError("")
       } else if (typeof data.dueDate === "string" && data.dueDate) {
-        setEndDate(inputeDateFrontend(data.dueDate))
+        setEndDate(fromISODate(data.dueDate))
         setEndDateError("")
       } else {
         setEndDate("")
@@ -473,6 +476,18 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
                       className="min-h-[120px] w-full rounded-md border border-gray-300 bg-white px-4 py-3 text-sm outline-none"
                     />
                   </div>
+
+                  <div>
+                    <label className="mb-1 block text-sm font-semibold text-gray-700">
+                      Notes
+                    </label>
+                    <textarea
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      placeholder="Enter notes"
+                      className="min-h-[120px] w-full rounded-md border border-gray-300 bg-white px-4 py-3 text-sm outline-none"
+                    />
+                  </div>
                 </div>
 
                 <div>
@@ -601,18 +616,21 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
                     </div>
 
                     <div className="mb-6">
-                      <p className="mb-2 text-sm font-semibold text-gray-700">
-                        Payment Terms
-                      </p>
-                      <div className="rounded-md bg-gray-50 p-3 text-sm text-gray-700">
-                        {paymentTerms || "No payment terms added yet."}
+                      <p className="mb-2 text-sm font-semibold text-gray-700">Payment Terms</p>
+                      <div className="text-sm text-gray-700 whitespace-pre-wrap">
+                        {paymentTerms || "No payment terms added."}
                       </div>
                     </div>
 
                     <div className="mb-6">
-                      <p className="mb-3 text-sm font-semibold text-gray-700">
-                        Items
-                      </p>
+                      <p className="mb-2 text-sm font-semibold text-gray-700">Notes</p>
+                      <div className="text-sm text-gray-700 whitespace-pre-wrap">
+                        {notes || "No notes added."}
+                      </div>
+                    </div>
+
+                    <div className="mb-6">
+                      <p className="mb-3 text-sm font-semibold text-gray-700">Items</p>
 
                       <div className="space-y-3">
                         {items.map((item, index) => {
