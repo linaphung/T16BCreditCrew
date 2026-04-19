@@ -36,7 +36,7 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
     return /^\d{2}\/\d{2}\/\d{4}$/.test(value)
   }
 
-  function convertToISO(date: string) {
+  function dateFromBackend(date: string) {
     if (!date) return ""
 
     const parts = date.split("/")
@@ -45,6 +45,16 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
     const [day, month, year] = parts
     return `${year}-${month}-${day}`
   }
+
+  function inputeDateFrontend(date: string) {
+  if (!date) return ""
+
+  const parts = date.split("-")
+  if (parts.length !== 3) return ""
+
+  const [year, month, day] = parts
+  return `${day}/${month}/${year}`
+}
 
   function openFilePicker() {
     if (fileInputRef.current) 
@@ -157,14 +167,14 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
   function makeInvoiceBody() {
     return {
       issueDate: new Date().toISOString().slice(0, 10),
-      dueDate: convertToISO(dueDate),
+      dueDate: dateFromBackend(dueDate),
       currency: "AUD",
       paymentTerms: paymentTerms,
       buyer: buyerName,
       seller: sellerName,
       invoicePeriod: {
-        startDate: convertToISO(startDate),
-        endDate: convertToISO(endDate)
+        startDate: dateFromBackend(startDate),
+        endDate: dateFromBackend(endDate)
       },
       orderLines: items.map((item, index) => ({
         lineId: String(index + 1),
@@ -203,29 +213,32 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
         return
       }
 
-      setBuyerName(typeof data.buyerName === "string" ? data.buyerName : "")
-      setSellerName(typeof data.sellerName === "string" ? data.sellerName : "")
+      setBuyerName(typeof data.buyer === "string" ? data.buyer : "")
+      setSellerName(typeof data.seller === "string" ? data.seller : "")
       setPaymentTerms(typeof data.paymentTerms === "string" ? data.paymentTerms : "")
 
       if (typeof data.dueDate === "string" && data.dueDate) {
-        const parts = data.dueDate.split("-")
-        setDueDate(`${parts[2]}/${parts[1]}/${parts[0]}`)
+        setDueDate(inputeDateFrontend(data.dueDate))
         setDueDateError("")
       } else {
         setDueDate("")
       }
 
       if (typeof data.invoicePeriod?.startDate === "string" && data.invoicePeriod.startDate) {
-        const parts = data.invoicePeriod.startDate.split("-")
-        setStartDate(`${parts[2]}/${parts[1]}/${parts[0]}`)
+        setStartDate(inputeDateFrontend(data.invoicePeriod.startDate))
+        setStartDateError("")
+      } else if (typeof data.issueDate === "string" && data.issueDate) {
+        setStartDate(inputeDateFrontend(data.issueDate))
         setStartDateError("")
       } else {
         setStartDate("")
       }
 
       if (typeof data.invoicePeriod?.endDate === "string" && data.invoicePeriod.endDate) {
-        const parts = data.invoicePeriod.endDate.split("-")
-        setEndDate(`${parts[2]}/${parts[1]}/${parts[0]}`)
+        setEndDate(inputeDateFrontend(data.invoicePeriod.endDate))
+        setEndDateError("")
+      } else if (typeof data.dueDate === "string" && data.dueDate) {
+        setEndDate(inputeDateFrontend(data.dueDate))
         setEndDateError("")
       } else {
         setEndDate("")
