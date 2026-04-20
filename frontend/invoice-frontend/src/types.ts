@@ -8,6 +8,16 @@ export interface CreateInvoicePageProps {
   setToken: (token: string | null) => void
 }
 
+export type ViewInvoiceProps = {
+  url: string
+  setToken: React.Dispatch<React.SetStateAction<string>>
+}
+
+export type EditInvoicePageProps = {
+  url: string
+}
+
+
 export interface Invoice {
   invoiceId: string
   invoiceStatus: string
@@ -46,4 +56,48 @@ export type ParsedOrderLine = {
   itemName?: string
   quantity?: number
   unitPrice?: number
+}
+
+export type InvoiceLine = {
+  lineId: string
+  itemName: string
+  quantity: number
+  unitPrice: number
+}
+
+export type InvoiceData = {
+  issueDate: string
+  dueDate: string
+  paymentTerms: string
+  invoicePeriod?: {
+    startDate?: string
+    endDate?: string
+  }
+  buyer: {
+    name: string
+  }
+  seller: {
+    name: string
+  }
+  lineItems: InvoiceLine[]
+  payableAmount: {
+    currency: string
+    amount: number
+  }
+  notes: string
+}
+
+export type InvoiceResponse = {
+  invoiceId: string
+  invoiceStatus: "draft" | "finalised" | "sent" | "paid" | "invalid"
+  invoiceData: InvoiceData
+  invoiceXML: string
+  isOverdue: boolean
+}
+
+export type EditableItem = {
+  lineId: string
+  itemName: string
+  quantity: string
+  unitPrice: string
 }

@@ -8,10 +8,9 @@ import DashboardPage from './pages/Dashboard'
 import ViewInvoicePage from './pages/ViewInvoice'
 import CreateInvoicePage from './pages/CreateInvoicePage'
 import EditInvoicePage from './pages/EditInvoicePage'
-import UploadOrderPage from './pages/UploadOrderPage'
 import BusinessProfilePage from './pages/BusinessProfile'
 
-const url="http://localhost:3000"
+const url = import.meta.env.VITE_API_URL
 // const url="https://t16bcreditcrew-86oh.onrender.com"
 function App() {
   const [, setToken] = useState(localStorage.getItem('token'))
@@ -26,8 +25,7 @@ function App() {
         <Route path="/dashboard/business-profile" element={<BusinessProfilePage url={url} setToken={setToken} />}/>
         <Route path='/dashboard/:invoiceId' element={<ViewInvoicePage url={url} setToken={setToken}/>}></Route>
         <Route path='/dashboard/create' element={<CreateInvoicePage url={url} setToken={setToken}/>}></Route>
-        <Route path='/dashboard/upload-order' element={<UploadOrderPage url={url} setToken={setToken}/>}></Route>
-        <Route path='/dashboard/:invoiceId/edit' element={<EditInvoicePage url={url} setToken={setToken}/>}></Route>
+        <Route path="/invoice/edit/:invoiceId" element={<EditInvoicePage url={url} />} />
       </Routes>
     </BrowserRouter>
   )

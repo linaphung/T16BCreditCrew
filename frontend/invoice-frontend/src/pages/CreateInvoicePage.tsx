@@ -357,13 +357,13 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
   }
 
   async function handleCreateInvoice() {
-    if (!token) 
-      return
-  
+    if (!token) return
+
     if (hasErrors()) {
       alert("Please fix the input errors first")
       return
     }
+
     setLoading(true)
 
     try {
@@ -388,22 +388,6 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
       }
 
       const invoiceId = createData.result.invoiceId
-
-      const finaliseResponse = await fetch(`${url}/v1/admin/invoice/finalise/${invoiceId}`, {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      })
-
-      const finaliseData = await finaliseResponse.json()
-      console.log(finaliseData)
-
-      if (!finaliseResponse.ok) {
-        setLoading(false)
-        return
-      }
-
       navigate(`/dashboard/${invoiceId}`)
     } catch (error) {
       console.log(error)
