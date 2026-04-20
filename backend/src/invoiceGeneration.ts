@@ -1,6 +1,6 @@
 import Invoice from '../models/Invoice.js'
 import { GeneratedInvoice, InvoiceData, DraftInvoiceInput, DeleteInvoiceResponse, InvoiceFilters } from './types.js'
-import { calculateLineExtension, generateXMLString, isOverdue } from './helper.js'
+import { calculateLineExtension, generateXMLString, isOverdue, validateDraftInput, validateCompleteInput } from './helper.js'
 import { InvoiceBadRequest, InvoiceNotFoundError, InvalidFileError } from './errors.js'
 import { validateInvoiceHelper } from './invoiceValidation.js'
 import { XMLParser } from 'fast-xml-parser'
@@ -43,25 +43,24 @@ export const parseOrderDocument = async (fileBuffer: Buffer) => {
   let parsed: any
   const fileContent = fileBuffer.toString().trim()
 
-  if (!fileContent) {
-    throw new InvalidFileError("Uploaded file is empty")
-  }
+  if (!fileContent) 
+    throw new InvalidFileError('Uploaded file is empty')
 
-  if (fileContent.startsWith("{") || fileContent.startsWith("[")) {
+  if (fileContent.startsWith('{') || fileContent.startsWith('[')) {
     try {
       parsed = JSON.parse(fileContent)
     } catch {
-      throw new InvalidFileError("Invalid JSON file")
+      throw new InvalidFileError('Invalid JSON file')
     }
-  } else if (fileContent.startsWith("<")) {
+  } else if (fileContent.startsWith('<')) {
     try {
       const parser = new XMLParser({ ignoreAttributes: false })
       parsed = parser.parse(fileContent)
     } catch {
-      throw new InvalidFileError("Invalid XML file")
+      throw new InvalidFileError('Invalid XML file')
     }
   } else {
-    throw new InvalidFileError("Invalid file format. Must be XML or JSON")
+    throw new InvalidFileError('Invalid file format. Must be XML or JSON')
   }
 
   const order = parsed?.Order ?? parsed
@@ -69,26 +68,30 @@ export const parseOrderDocument = async (fileBuffer: Buffer) => {
   const rawBuyer =
     order?.BuyerCustomerParty?.Party?.PartyName?.Name ??
     order?.buyerName ??
+    order?.buyer?.businessName ??
     order?.buyer ??
+    order?.Buyer?.BusinessName ??
     order?.Buyer?.Name ??
     order?.Buyer
 
   const buyerName =
-    typeof rawBuyer === "string"
+    typeof rawBuyer === 'string'
       ? rawBuyer
-      : rawBuyer?.name ?? rawBuyer?.Name ?? ""
+      : rawBuyer?.businessName ?? rawBuyer?.name ?? rawBuyer?.Name ?? ''
 
   const rawSeller =
     order?.SellerSupplierParty?.Party?.PartyName?.Name ??
     order?.sellerName ??
+    order?.seller?.businessName ??
     order?.seller ??
+    order?.Seller?.BusinessName ??
     order?.Seller?.Name ??
     order?.Seller
 
   const sellerName =
-    typeof rawSeller === "string"
+    typeof rawSeller === 'string'
       ? rawSeller
-      : rawSeller?.name ?? rawSeller?.Name ?? ""
+      : rawSeller?.businessName ?? rawSeller?.name ?? rawSeller?.Name ?? ''
 
   const rawPaymentTerms =
     order?.PaymentTerms?.Note ??
@@ -96,40 +99,53 @@ export const parseOrderDocument = async (fileBuffer: Buffer) => {
     order?.PaymentTerms
 
   const paymentTerms =
-    typeof rawPaymentTerms === "string"
+    typeof rawPaymentTerms === 'string'
       ? rawPaymentTerms
-      : rawPaymentTerms?.note ?? rawPaymentTerms?.Note ?? ""
+      : rawPaymentTerms?.note ?? rawPaymentTerms?.Note ?? ''
+
+  const rawNotes =
+    order?.notes ??
+    order?.Notes ??
+    order?.Note
+
+  const notes =
+    typeof rawNotes === 'string'
+      ? rawNotes
+      : rawNotes?.text ?? ''
 
   const issueDate =
     order?.IssueDate ??
     order?.issueDate ??
-    ""
+    ''
 
   const dueDate =
     order?.DueDate ??
     order?.dueDate ??
-    ""
+    order?.deliveryDate ??
+    ''
 
   const currency =
     order?.DocumentCurrencyCode ??
     order?.currency ??
-    "AUD"
+    'AUD'
 
   const invoicePeriod = {
     startDate:
       order?.InvoicePeriod?.StartDate ??
       order?.invoicePeriod?.startDate ??
-      "",
+      '',
     endDate:
       order?.InvoicePeriod?.EndDate ??
       order?.invoicePeriod?.endDate ??
-      ""
+      ''
   }
 
   const rawLines =
     order?.OrderLine ??
     order?.orderLines ??
     order?.OrderLines?.OrderLine ??
+    order?.items ??
+    order?.Items?.Item ??
     []
 
   const lineArray = Array.isArray(rawLines) ? rawLines : [rawLines]
@@ -141,14 +157,18 @@ export const parseOrderDocument = async (fileBuffer: Buffer) => {
       lineId: String(
         line?.LineItem?.ID ??
         line?.lineId ??
+        line?.lineNumber ??
         line?.LineId ??
-        ""
+        line?.LineNumber ??
+        ''
       ),
       itemName:
         line?.LineItem?.Item?.Name ??
         line?.itemName ??
+        line?.description ??
+        line?.Description ??
         line?.ItemName ??
-        "",
+        '',
       quantity: Number(
         line?.LineItem?.Quantity ??
         line?.quantity ??
@@ -165,14 +185,14 @@ export const parseOrderDocument = async (fileBuffer: Buffer) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .filter((line: any) => line.itemName)
 
-  if (!buyerName || !sellerName || !paymentTerms || !orderLines.length) {
-    throw new InvalidFileError("Missing required fields in order document")
-  }
+  if (!buyerName || !sellerName || !orderLines.length) 
+    throw new InvalidFileError('Missing required fields in order document')
 
   return {
     buyerName,
     sellerName,
     paymentTerms,
+    notes,
     issueDate,
     dueDate,
     currency,
@@ -190,24 +210,33 @@ export const generateInvoiceDraft = async (
   input: DraftInvoiceInput,
   userId: string,
 ): Promise<GeneratedInvoice> => {
+
+  if (input.isDraft) {
+    validateDraftInput(input)
+  } else {
+    validateCompleteInput(input)
+  }
+
   const payableAmount = calculateLineExtension(input.orderLines)
 
   const invoiceData: InvoiceData = {
-    issueDate: input.issueDate,
-    dueDate: input.dueDate,
-    paymentTerms: input.paymentTerms,
+    issueDate: input.issueDate || '',
+    dueDate: input.dueDate || '',
+    paymentTerms: input.paymentTerms || '',
+    notes: input.notes || '',
     invoicePeriod: input.invoicePeriod ? {
-      startDate: input.invoicePeriod.startDate,
-      endDate: input.invoicePeriod.endDate,
+      startDate: input.invoicePeriod.startDate || '',
+      endDate: input.invoicePeriod.endDate || '',
     } : undefined,
-    buyer: { name: input.buyer },
-    seller: { name: input.seller },
-    lineItems: input.orderLines,
+    buyer: { name: input.buyer || '' },
+    seller: { name: input.seller || '' },
+    lineItems: input.orderLines || [],
     payableAmount: {
-      currency: input.currency,
+      currency: input.currency || 'AUD',
       amount: payableAmount
     }
   }
+
   const invoice = await Invoice.create({
     userId,
     status: 'draft',

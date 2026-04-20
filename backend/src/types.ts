@@ -38,12 +38,25 @@ export interface UserUpdate {
   email?: string;
   password?: string;
   businessName?: string;
+  abn?: string
+  phoneNumber?: string
+  address?: string
+  includeAbn?: boolean
+  includeEmail?: boolean
+  includePhoneNumber?: boolean
+  includeAddress?: boolean
 }
 
 export interface UserDetails {
-  email: string;
-  businessName: string;
-  abn: string;
+  email: string
+  businessName: string
+  abn: string
+  phoneNumber?: string
+  address?: string
+  includeAbn?: boolean
+  includeEmail?: boolean
+  includePhoneNumber?: boolean
+  includeAddress?: boolean
 }
 
 export interface UploadOrderContract {
@@ -73,12 +86,15 @@ export interface DraftInvoiceInput {
   issueDate: string,
   invoicePeriod?: InvoicePeriod
   dueDate: string,
+  notes?: string,
   paymentTerms: string,
   buyer: string,
   seller: string,
   currency: string,
   orderLines: OrderLine[],
+  isDraft?: boolean
 }
+
 export interface DraftInvoiceRequest {
   parsedData: ParseOrderContract;
 }
@@ -109,6 +125,7 @@ export interface InvoiceData {
   issueDate: string,
   dueDate: string,
   paymentTerms: string,
+  notes?: string,
   invoicePeriod?: InvoicePeriod,
   buyer: {
     name: string

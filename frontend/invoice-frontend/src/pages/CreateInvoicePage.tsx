@@ -15,28 +15,103 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
   const [startDate, setStartDate] = useState("")
   const [endDate, setEndDate] = useState("")
   const [paymentTerms, setPaymentTerms] = useState("")
+  const [notes, setNotes] = useState("")
   const [items, setItems] = useState<Item[]>([
     { itemName: "", quantity: "", unitPrice: "" }
   ])
   const [itemErrors, setItemErrors] = useState<ItemError[]>([
     { quantity: "", unitPrice: "" }
   ])
-
   const [dueDateError, setDueDateError] = useState("")
   const [startDateError, setStartDateError] = useState("")
   const [endDateError, setEndDateError] = useState("")
   const [loading, setLoading] = useState(false)
+  const [currency, setCurrency] = useState("AUD")
+  const [sellerAbn, setSellerAbn] = useState("")
+  const [sellerEmail, setSellerEmail] = useState("")
+  const [sellerPhoneNumber, setSellerPhoneNumber] = useState("")
+  const [sellerAddress, setSellerAddress] = useState("")
 
-  useEffect(() => {
-    if (!token) 
-      navigate("/")
-  }, [token, navigate])
+  const [includeAbn, setIncludeAbn] = useState(true)
+  const [includeEmail, setIncludeEmail] = useState(true)
+  const [includePhoneNumber, setIncludePhoneNumber] = useState(true)
+  const [includeAddress, setIncludeAddress] = useState(true)
 
-  function validDateFormat(value: string) {
-    return /^\d{2}\/\d{2}\/\d{4}$/.test(value)
+  async function loadBusinessProfile() {
+    if (!token) return
+
+    try {
+      const response = await fetch(`${url}/v1/admin/user/details`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+
+      const data = await response.json()
+      console.log(data)
+
+      if (!response.ok) return
+
+      setSellerName(data.businessName || "")
+      setSellerAbn(data.abn || "")
+      setSellerEmail(data.email || "")
+      setSellerPhoneNumber(data.phoneNumber || "")
+      setSellerAddress(data.address || "")
+      setIncludeAbn(data.includeAbn ?? true)
+      setIncludeEmail(data.includeEmail ?? true)
+      setIncludePhoneNumber(data.includePhoneNumber ?? true)
+      setIncludeAddress(data.includeAddress ?? true)
+    } catch (error) {
+      console.log(error)
+    }
   }
 
-  function convertToISO(date: string) {
+  useEffect(() => {
+    if (!token) {
+      navigate("/")
+      return
+    }
+    loadBusinessProfile()
+  }, [token, navigate])
+  
+  function formatDateInput(value: string) {
+    const digits = value.replace(/\D/g, "").slice(0, 8)
+
+    if (digits.length <= 2) return digits
+    if (digits.length <= 4) return `${digits.slice(0, 2)}/${digits.slice(2)}`
+    return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`
+  }
+
+  function isRealDate(value: string) {
+    const match = value.match(/^(\d{2})\/(\d{2})\/(\d{4})$/)
+    if (!match) return false
+
+    const day = Number(match[1])
+    const month = Number(match[2])
+    const year = Number(match[3])
+
+    const currentYear = new Date().getFullYear()
+
+    if (month < 1 || month > 12) return false
+    if (year < 2000 || year > currentYear + 1) return false
+
+    const testDate = new Date(year, month - 1, day)
+
+    return (
+      testDate.getFullYear() === year &&
+      testDate.getMonth() === month - 1 &&
+      testDate.getDate() === day
+    )
+  }
+
+  function getDateError(value: string) {
+    if (!value) return "Date is required"
+    if (value.length < 10) return "Date must be DD/MM/YYYY"
+    if (!isRealDate(value)) return "Enter a valid date"
+    return ""
+  }
+
+  function toISODate(date: string) {
     if (!date) return ""
 
     const parts = date.split("/")
@@ -44,6 +119,16 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
 
     const [day, month, year] = parts
     return `${year}-${month}-${day}`
+  }
+
+  function fromISODate(date: string) {
+    if (!date) return ""
+
+    const parts = date.split("-")
+    if (parts.length !== 3) return ""
+
+    const [year, month, day] = parts
+    return `${day}/${month}/${year}`
   }
 
   function openFilePicker() {
@@ -111,27 +196,25 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
   }
 
   function updateDueDate(value: string) {
-    setDueDate(value)
-    if (value === "" || !validDateFormat(value)) 
-      setDueDateError("Date must be DD/MM/YYYY")
-    else 
-      setDueDateError("")
+    const formatted = formatDateInput(value)
+    setDueDate(formatted)
+    setDueDateError(getDateError(formatted))
   }
 
   function updateStartDate(value: string) {
-    setStartDate(value)
-    if (value === "" || !validDateFormat(value)) 
-      setStartDateError("Date must be DD/MM/YYYY")
-    else 
-      setStartDateError("")
+    const formatted = formatDateInput(value)
+    setStartDate(formatted)
+    setStartDateError(getDateError(formatted))
   }
 
   function updateEndDate(value: string) {
-    setEndDate(value)
-    if (value === "" || !validDateFormat(value))
-      setEndDateError("Date must be DD/MM/YYYY")
-    else
-      setEndDateError("")
+    const formatted = formatDateInput(value)
+    setEndDate(formatted)
+    setEndDateError(getDateError(formatted))
+  }
+
+  function formatMoney(amount: number) {
+    return `${currency} ${amount.toFixed(2)}`
   }
 
   function getTotal() {
@@ -157,20 +240,31 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
   function makeInvoiceBody() {
     return {
       issueDate: new Date().toISOString().slice(0, 10),
-      dueDate: convertToISO(dueDate),
-      currency: "AUD",
-      paymentTerms: paymentTerms,
+      dueDate: toISODate(dueDate),
+      currency,
+      paymentTerms,
+      notes,
       buyer: buyerName,
       seller: sellerName,
+      sellerDetails: {
+        abn: sellerAbn,
+        email: sellerEmail,
+        phoneNumber: sellerPhoneNumber,
+        address: sellerAddress,
+        includeAbn,
+        includeEmail,
+        includePhoneNumber,
+        includeAddress
+      },
       invoicePeriod: {
-        startDate: convertToISO(startDate),
-        endDate: convertToISO(endDate)
+        startDate: toISODate(startDate),
+        endDate: toISODate(endDate)
       },
       orderLines: items.map((item, index) => ({
         lineId: String(index + 1),
         itemName: item.itemName,
-        quantity: Number(item.quantity),
-        unitPrice: Number(item.unitPrice)
+        quantity: item.quantity === "" ? 0 : Number(item.quantity),
+        unitPrice: item.unitPrice === "" ? 0 : Number(item.unitPrice)
       }))
     }
   }
@@ -206,26 +300,31 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
       setBuyerName(typeof data.buyerName === "string" ? data.buyerName : "")
       setSellerName(typeof data.sellerName === "string" ? data.sellerName : "")
       setPaymentTerms(typeof data.paymentTerms === "string" ? data.paymentTerms : "")
+      setNotes(typeof data.notes === "string" ? data.notes : "")
+      setCurrency(typeof data.currency === "string" ? data.currency : "AUD")
 
       if (typeof data.dueDate === "string" && data.dueDate) {
-        const parts = data.dueDate.split("-")
-        setDueDate(`${parts[2]}/${parts[1]}/${parts[0]}`)
+        setDueDate(fromISODate(data.dueDate))
         setDueDateError("")
       } else {
         setDueDate("")
       }
 
       if (typeof data.invoicePeriod?.startDate === "string" && data.invoicePeriod.startDate) {
-        const parts = data.invoicePeriod.startDate.split("-")
-        setStartDate(`${parts[2]}/${parts[1]}/${parts[0]}`)
+        setStartDate(fromISODate(data.invoicePeriod.startDate))
+        setStartDateError("")
+      } else if (typeof data.issueDate === "string" && data.issueDate) {
+        setStartDate(fromISODate(data.issueDate))
         setStartDateError("")
       } else {
         setStartDate("")
       }
 
       if (typeof data.invoicePeriod?.endDate === "string" && data.invoicePeriod.endDate) {
-        const parts = data.invoicePeriod.endDate.split("-")
-        setEndDate(`${parts[2]}/${parts[1]}/${parts[0]}`)
+        setEndDate(fromISODate(data.invoicePeriod.endDate))
+        setEndDateError("")
+      } else if (typeof data.dueDate === "string" && data.dueDate) {
+        setEndDate(fromISODate(data.dueDate))
         setEndDateError("")
       } else {
         setEndDate("")
@@ -257,40 +356,6 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
     setLoading(false)
   }
 
-  async function handleSaveDraft() {
-    if (!token)
-      return
-
-    if (hasErrors()) {
-      alert("Please fix the input errors first")
-      return
-    }
-
-    setLoading(true)
-
-    try {
-      const response = await fetch(`${url}/v1/admin/invoice`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify(makeInvoiceBody())
-      })
-
-      const data = await response.json()
-      console.log(data)
-
-      if (response.ok) 
-        navigate("/dashboard")
-
-    } catch (error) {
-      console.log(error)
-    }
-
-    setLoading(false)
-  }
-
   async function handleCreateInvoice() {
     if (!token) 
       return
@@ -308,7 +373,10 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify(makeInvoiceBody())
+        body: JSON.stringify({
+          ...makeInvoiceBody(),
+          isDraft: false
+        })
       })
 
       const createData = await createResponse.json()
@@ -397,6 +465,24 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
 
                   <div>
                     <label className="mb-1 block text-sm font-semibold text-gray-700">
+                      Currency
+                    </label>
+                    <select
+                      value={currency}
+                      onChange={(e) => setCurrency(e.target.value)}
+                      className="w-full rounded-md border border-gray-300 bg-white px-4 py-3 text-sm outline-none"
+                    >
+                      <option value="AUD">AUD</option>
+                      <option value="USD">USD</option>
+                      <option value="EUR">EUR</option>
+                      <option value="GBP">GBP</option>
+                      <option value="NZD">NZD</option>
+                      <option value="CAD">CAD</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="mb-1 block text-sm font-semibold text-gray-700">
                       Due Date [DD/MM/YYYY]
                     </label>
                     <input
@@ -457,6 +543,18 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
                       value={paymentTerms}
                       onChange={(e) => setPaymentTerms(e.target.value)}
                       placeholder="Enter payment terms"
+                      className="min-h-[120px] w-full rounded-md border border-gray-300 bg-white px-4 py-3 text-sm outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-1 block text-sm font-semibold text-gray-700">
+                      Notes
+                    </label>
+                    <textarea
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      placeholder="Enter notes"
                       className="min-h-[120px] w-full rounded-md border border-gray-300 bg-white px-4 py-3 text-sm outline-none"
                     />
                   </div>
@@ -565,6 +663,12 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
                       <div>
                         <p className="font-semibold">Seller</p>
                         <p>{sellerName || "Seller name"}</p>
+                        {includeAbn && sellerAbn && <p>ABN: {sellerAbn}</p>}
+                        {includeEmail && sellerEmail && <p>{sellerEmail}</p>}
+                        {includePhoneNumber && sellerPhoneNumber && <p>{sellerPhoneNumber}</p>}
+                        {includeAddress && sellerAddress && (
+                          <p className="whitespace-pre-wrap">{sellerAddress}</p>
+                        )}
                       </div>
 
                       <div className="text-right">
@@ -588,18 +692,21 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
                     </div>
 
                     <div className="mb-6">
-                      <p className="mb-2 text-sm font-semibold text-gray-700">
-                        Payment Terms
-                      </p>
-                      <div className="rounded-md bg-gray-50 p-3 text-sm text-gray-700">
-                        {paymentTerms || "No payment terms added yet."}
+                      <p className="mb-2 text-sm font-semibold text-gray-700">Payment Terms</p>
+                      <div className="text-sm text-gray-700 whitespace-pre-wrap">
+                        {paymentTerms || "No payment terms added."}
                       </div>
                     </div>
 
                     <div className="mb-6">
-                      <p className="mb-3 text-sm font-semibold text-gray-700">
-                        Items
-                      </p>
+                      <p className="mb-2 text-sm font-semibold text-gray-700">Notes</p>
+                      <div className="text-sm text-gray-700 whitespace-pre-wrap">
+                        {notes || "No notes added."}
+                      </div>
+                    </div>
+
+                    <div className="mb-6">
+                      <p className="mb-3 text-sm font-semibold text-gray-700">Items</p>
 
                       <div className="space-y-3">
                         {items.map((item, index) => {
@@ -617,12 +724,12 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
                                   {item.itemName || `Item ${index + 1}`}
                                 </span>
                                 <span className="text-gray-600">
-                                  ${lineTotal.toFixed(2)}
+                                  {formatMoney(lineTotal)}
                                 </span>
                               </div>
 
                               <div className="mt-1 text-gray-500">
-                                Qty: {item.quantity || 0} × ${item.unitPrice || 0}
+                                Qty: {item.quantity || 0} × {currency} {Number(item.unitPrice || 0).toFixed(2)}
                               </div>
                             </div>
                           )
@@ -633,7 +740,7 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
                     <div className="border-t pt-4 text-right">
                       <p className="text-sm font-semibold text-gray-700">Total</p>
                       <p className="text-2xl font-bold text-[#1560b7]">
-                        ${getTotal()}
+                        {currency} {getTotal()}
                       </p>
                     </div>
                   </div>
@@ -663,14 +770,6 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
                   className="rounded-md border border-gray-300 bg-white px-5 py-3 font-medium text-gray-700 shadow-sm"
                 >
                   Cancel
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleSaveDraft}
-                  className="rounded-md bg-[#4c86cb] px-5 py-3 font-medium text-white shadow"
-                >
-                  Save Draft
                 </button>
 
                 <button
