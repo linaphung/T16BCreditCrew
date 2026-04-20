@@ -38,12 +38,25 @@ export interface UserUpdate {
   email?: string;
   password?: string;
   businessName?: string;
+  abn: string
+  phoneNumber?: string
+  address?: string
+  includeAbn?: boolean
+  includeEmail?: boolean
+  includePhoneNumber?: boolean
+  includeAddress?: boolean
 }
 
 export interface UserDetails {
-  email: string;
-  businessName: string;
-  abn: string;
+  email: string
+  businessName: string
+  abn: string
+  phoneNumber?: string
+  address?: string
+  includeAbn?: boolean
+  includeEmail?: boolean
+  includePhoneNumber?: boolean
+  includeAddress?: boolean
 }
 
 export interface UploadOrderContract {

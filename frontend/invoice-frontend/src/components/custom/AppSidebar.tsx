@@ -8,7 +8,7 @@ import {
   SidebarMenu,
   SidebarMenuButton
 } from "@/components/ui/sidebar"
-import { LayoutDashboard, FilePlus, Upload, LogOut } from "lucide-react"
+import { LayoutDashboard, FilePlus, Upload, LogOut, Building2 } from "lucide-react"
 import { useNavigate, useLocation } from "react-router-dom"
 
 interface AppSideBarProps {
@@ -20,6 +20,7 @@ export function AppSidebar({setToken}: AppSideBarProps) {
   const navigate = useNavigate()
   const sideBarItems = [
     {label: "Dashboard", icon: <LayoutDashboard></LayoutDashboard>, navigateTo: '/dashboard'},
+    {label: "Business Profile", icon: <Building2 />, navigateTo: "/dashboard/business-profile"},
     {label: "Create Invoice", icon: <FilePlus></FilePlus> ,navigateTo: '/dashboard/create'},
     {label: "Upload Order", icon: <Upload></Upload>, navigateTo: '/dashboard/upload-order'},
   ]
@@ -45,7 +46,7 @@ export function AppSidebar({setToken}: AppSideBarProps) {
         <SidebarGroup />
           <SidebarMenu>
             {sideBarItems.map(i => (
-              <SidebarMenuItem className={`py-1 ${location.pathname === i.navigateTo ? "bg-blue-50 text-blue-900" : " "}` }>
+              <SidebarMenuItem key={i.navigateTo} className={`py-1 ${location.pathname === i.navigateTo ? "bg-blue-50 text-blue-900" : " "}` }>
                 <SidebarMenuButton onClick={() => navigate(i.navigateTo)}>
                   {i.icon}
                   {i.label}

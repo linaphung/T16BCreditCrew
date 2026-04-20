@@ -110,6 +110,12 @@ export const adminUserDetails = async (
     email: user.email,
     businessName: user.businessName,
     abn: user.abn,
+    phoneNumber: user.phoneNumber ?? '',
+    address: user.address ?? '',
+    includeAbn: user.includeAbn ?? true,
+    includeEmail: user.includeEmail ?? true,
+    includePhoneNumber: user.includePhoneNumber ?? true,
+    includeAddress: user.includeAddress ?? true,
   }
 }
 
@@ -127,17 +133,27 @@ export const adminUserDetails = async (
 export const adminUserDetailsUpdate = async (
   token: string,
   updates: UserUpdate
-): Promise<UserUpdate> => {
+): Promise<{}> => {
   const user = await getUserFromToken(token)
 
   if (!user)
     throw new UserNotFound('User does not exist')
 
-  const { email, businessName, password } = updates
+  const {
+    email,
+    businessName,
+    password,
+    abn,
+    phoneNumber,
+    address,
+    includeAbn,
+    includeEmail,
+    includePhoneNumber,
+    includeAddress
+  } = updates
 
   if (email !== undefined) {
     const normalisedEmail = email.trim().toLowerCase()
-    // Only re-validate if the address has actually changed
     if (normalisedEmail !== user.email) {
       await validateEmail(normalisedEmail)
       user.email = normalisedEmail
@@ -148,6 +164,34 @@ export const adminUserDetailsUpdate = async (
     if (businessName.trim().length === 0)
       throw new InvalidBusinessNameError('Business name cannot be empty')
     user.businessName = businessName.trim()
+  }
+
+  if (abn !== undefined) {
+    user.abn = abn.trim()
+  }
+
+  if (phoneNumber !== undefined) {
+    user.phoneNumber = phoneNumber.trim()
+  }
+
+  if (address !== undefined) {
+    user.address = address.trim()
+  }
+
+  if (includeAbn !== undefined) {
+    user.includeAbn = includeAbn
+  }
+
+  if (includeEmail !== undefined) {
+    user.includeEmail = includeEmail
+  }
+
+  if (includePhoneNumber !== undefined) {
+    user.includePhoneNumber = includePhoneNumber
+  }
+
+  if (includeAddress !== undefined) {
+    user.includeAddress = includeAddress
   }
 
   if (password !== undefined) {

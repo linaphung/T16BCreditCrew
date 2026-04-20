@@ -9,6 +9,8 @@ import ViewInvoicePage from './pages/ViewInvoice'
 import CreateInvoicePage from './pages/CreateInvoicePage'
 import EditInvoicePage from './pages/EditInvoicePage'
 import UploadOrderPage from './pages/UploadOrderPage'
+import BusinessProfilePage from './pages/BusinessProfile'
+
 const url="http://localhost:3000"
 // const url="https://t16bcreditcrew-86oh.onrender.com"
 function App() {
@@ -21,6 +23,7 @@ function App() {
         <Route path='/login' element={<LoginPage url={url} setToken={setToken}/>}></Route>
         <Route path='/register' element={<RegisterPage url={url} setToken={setToken}/>}></Route>
         <Route path='/dashboard' element={<DashboardPage url={url} setToken={setToken}/>}></Route>
+        <Route path="/dashboard/business-profile" element={<BusinessProfilePage url={url} setToken={setToken} />}/>
         <Route path='/dashboard/:invoiceId' element={<ViewInvoicePage url={url} setToken={setToken}/>}></Route>
         <Route path='/dashboard/create' element={<CreateInvoicePage url={url} setToken={setToken}/>}></Route>
         <Route path='/dashboard/upload-order' element={<UploadOrderPage url={url} setToken={setToken}/>}></Route>
