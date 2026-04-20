@@ -30,8 +30,13 @@ describe('test get user details', () => {
     expect(res.data.email).toBe(email)
     expect(res.data.businessName).toBe(businessName)
     expect(res.data.abn).toBe(abn)
+    expect(res.data.phoneNumber).toBe('')
+    expect(res.data.address).toBe('')
+    expect(res.data.includeAbn).toBe(true)
+    expect(res.data.includeEmail).toBe(true)
+    expect(res.data.includePhoneNumber).toBe(true)
+    expect(res.data.includeAddress).toBe(true)
   })
-
 
   test('INVALID_TOKEN, no token provided', async () => {
     const res = await axios.get(`${SERVER_URL}/v1/admin/user/details`, {
@@ -40,7 +45,6 @@ describe('test get user details', () => {
     expect(res.status).toBe(400)
     expect(res.data.error).toBe('INVALID_TOKEN')
   })
-
 
   test('INVALID_TOKEN, token is invalid', async () => {
     const res = await axios.get(`${SERVER_URL}/v1/admin/user/details`, {

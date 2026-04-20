@@ -38,7 +38,7 @@ export interface UserUpdate {
   email?: string;
   password?: string;
   businessName?: string;
-  abn: string
+  abn?: string
   phoneNumber?: string
   address?: string
   includeAbn?: boolean

@@ -108,8 +108,32 @@ app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument as object))
 app.put('/v1/admin/user/details', authenticate, async (req: Request, res: Response) => {
   try {
     const token = extractBearerToken(req)!
-    const { email, businessName, password } = req.body
-    const result = await adminUserDetailsUpdate(token, { email, businessName, password })
+    const {
+      email,
+      businessName,
+      password,
+      abn,
+      phoneNumber,
+      address,
+      includeAbn,
+      includeEmail,
+      includePhoneNumber,
+      includeAddress
+    } = req.body
+
+    const result = await adminUserDetailsUpdate(token, {
+      email,
+      businessName,
+      password,
+      abn,
+      phoneNumber,
+      address,
+      includeAbn,
+      includeEmail,
+      includePhoneNumber,
+      includeAddress
+    })
+
     return res.status(200).json(result)
   } catch (error) {
     const err = error as Error
