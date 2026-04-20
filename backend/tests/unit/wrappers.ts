@@ -45,11 +45,20 @@ export const userDetails = async (token: string) => {
 
 export const userDetailsUpdate = async (token: string, updates: UserUpdate) => {
   try {
-    const body = await adminUserDetailsUpdate(token, updates)
-    return { body, statusCode: 200 }
+    await adminUserDetailsUpdate(token, updates)
+    return {
+      statusCode: 200,
+      body: {}
+    }
   } catch (error) {
-    const err = error as Error & { statusCode?: number }
-    return { body: { error: err.name, message: err.message }, statusCode: err.statusCode || 400 }
+    const err = error as Error
+    return {
+      statusCode: (err as Error & { statusCode?: number }).statusCode || 400,
+      body: {
+        error: err.name,
+        message: err.message
+      }
+    }
   }
 }
 
