@@ -121,7 +121,7 @@ app.put('/v1/admin/user/details', authenticate, async (req: Request, res: Respon
       includeAddress
     } = req.body
 
-    const result = await adminUserDetailsUpdate(token, {
+    await adminUserDetailsUpdate(token, {
       email,
       businessName,
       password,
@@ -134,7 +134,7 @@ app.put('/v1/admin/user/details', authenticate, async (req: Request, res: Respon
       includeAddress
     })
 
-    return res.status(200).json(result)
+    return res.status(200).json({})
   } catch (error) {
     const err = error as Error
     return res.status(400).json({

@@ -133,7 +133,7 @@ export const adminUserDetails = async (
 export const adminUserDetailsUpdate = async (
   token: string,
   updates: UserUpdate
-): Promise<{}> => {
+): Promise<void> => {
   const user = await getUserFromToken(token)
 
   if (!user)
@@ -200,5 +200,4 @@ export const adminUserDetailsUpdate = async (
   }
 
   await user.save()
-  return {}
 }
