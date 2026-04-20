@@ -82,14 +82,14 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
   }
 
   function fromISODate(date: string) {
-  if (!date) return ""
+    if (!date) return ""
 
-  const parts = date.split("-")
-  if (parts.length !== 3) return ""
+    const parts = date.split("-")
+    if (parts.length !== 3) return ""
 
-  const [year, month, day] = parts
-  return `${day}/${month}/${year}`
-}
+    const [year, month, day] = parts
+    return `${day}/${month}/${year}`
+  }
 
   function openFilePicker() {
     if (fileInputRef.current) 
@@ -251,6 +251,7 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
       setSellerName(typeof data.sellerName === "string" ? data.sellerName : "")
       setPaymentTerms(typeof data.paymentTerms === "string" ? data.paymentTerms : "")
       setNotes(typeof data.notes === "string" ? data.notes : "")
+      setCurrency(typeof data.currency === "string" ? data.currency : "AUD")
 
       if (typeof data.dueDate === "string" && data.dueDate) {
         setDueDate(fromISODate(data.dueDate))
@@ -301,40 +302,6 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
     } catch (err) {
       console.log(err)
     }
-
-    setLoading(false)
-  }
-
-  async function handleSaveDraft() {
-    if (!token)
-      return
-
-    setLoading(true)
-
-    try {
-      const response = await fetch(`${url}/v1/admin/invoice`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          ...makeInvoiceBody(),
-          isDraft: true
-        }),
-      })
-
-      const data = await response.json()
-      console.log(data)
-
-      if (response.ok) {
-        navigate("/dashboard")
-      } else {
-        alert(data.message || "Failed to save draft")
-      }
-      } catch (error) {
-        console.log(error)
-      }
 
     setLoading(false)
   }
@@ -747,14 +714,6 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
                   className="rounded-md border border-gray-300 bg-white px-5 py-3 font-medium text-gray-700 shadow-sm"
                 >
                   Cancel
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleSaveDraft}
-                  className="rounded-md bg-[#4c86cb] px-5 py-3 font-medium text-white shadow"
-                >
-                  Save Draft
                 </button>
 
                 <button
