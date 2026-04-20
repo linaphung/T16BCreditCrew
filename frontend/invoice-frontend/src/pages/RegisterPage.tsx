@@ -15,11 +15,7 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-
-interface RegisterPageProps {
-  url: string
-  setToken: (token: string | null) => void
-}
+import type { RegisterPageProps } from "@/types";
 
 export default function RegisterPage({url, setToken}: RegisterPageProps) {
   const [showPassword, setShowPassword] = useState(false)

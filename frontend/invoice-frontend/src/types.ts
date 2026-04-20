@@ -1,16 +1,26 @@
-export interface DashboardProps {
+export type DashboardProps = {
   url: string
-  setToken: (token: string | null) => void
+  setToken: React.Dispatch<React.SetStateAction<string | null>>
 }
 
-export interface CreateInvoicePageProps {
+export type CreateInvoicePageProps = {
   url: string
-  setToken: (token: string | null) => void
+  setToken: React.Dispatch<React.SetStateAction<string | null>>
 }
 
 export type ViewInvoiceProps = {
   url: string
-  setToken: React.Dispatch<React.SetStateAction<string>>
+  setToken: React.Dispatch<React.SetStateAction<string | null>>
+}
+
+export interface LoginPageProps {
+  url: string
+  setToken: React.Dispatch<React.SetStateAction<string | null>>
+}
+
+export interface RegisterPageProps {
+  url: string
+  setToken: React.Dispatch<React.SetStateAction<string | null>>
 }
 
 export type EditInvoicePageProps = {
