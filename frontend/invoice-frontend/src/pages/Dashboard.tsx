@@ -91,7 +91,7 @@ export default function DashboardPage({ url, setToken }: DashboardProps) {
           {invoice.invoiceData.invoicePeriod?.startDate || "—"} → {invoice.invoiceData.invoicePeriod?.endDate || "—"}
         </td>
         <td className="px-6 py-4 font-semibold">
-          ${invoice.invoiceData.payableAmount.amount}
+          {invoice.invoiceData.payableAmount.currency} {invoice.invoiceData.payableAmount.amount}
         </td>
       </tr>
     ))
@@ -145,7 +145,6 @@ export default function DashboardPage({ url, setToken }: DashboardProps) {
                   onKeyDown={(e) => e.key === "Enter" && getInvoices()}
                   className="w-56 rounded-md border bg-white px-3 py-2 text-sm outline-none placeholder:text-gray-400 focus:border-[#1560b7]"
                 />
-
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
@@ -153,9 +152,11 @@ export default function DashboardPage({ url, setToken }: DashboardProps) {
                 >
                   <option value="">All statuses</option>
                   <option value="draft">Draft</option>
-                  <option value="pending">Pending</option>
+                  <option value="invalid">Invalid</option>
+                  <option value="valid">Valid</option>
+                  <option value="finalised">Finalised</option>
+                  <option value="sent">Sent</option>
                   <option value="paid">Paid</option>
-                  <option value="overdue">Overdue</option>
                 </select>
 
                 <button
