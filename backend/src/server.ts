@@ -133,7 +133,7 @@ app.put('/v1/admin/user/details', authenticate, async (req: Request, res: Respon
       includePhoneNumber,
       includeAddress
     })
-
+    
     return res.status(200).json({})
   } catch (error) {
     const err = error as Error
@@ -154,7 +154,6 @@ app.get('/v1/admin/user/details', authenticate, async (req: Request, res: Respon
         message: 'Token is invalid'
       })
     }
-
     const result = await adminUserDetails(token)
     return res.status(200).json(result)
   } catch (error) {

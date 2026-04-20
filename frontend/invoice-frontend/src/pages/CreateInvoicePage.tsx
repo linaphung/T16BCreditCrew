@@ -22,16 +22,56 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
   const [itemErrors, setItemErrors] = useState<ItemError[]>([
     { quantity: "", unitPrice: "" }
   ])
-
   const [dueDateError, setDueDateError] = useState("")
   const [startDateError, setStartDateError] = useState("")
   const [endDateError, setEndDateError] = useState("")
   const [loading, setLoading] = useState(false)
   const [currency, setCurrency] = useState("AUD")
+  const [sellerAbn, setSellerAbn] = useState("")
+  const [sellerEmail, setSellerEmail] = useState("")
+  const [sellerPhoneNumber, setSellerPhoneNumber] = useState("")
+  const [sellerAddress, setSellerAddress] = useState("")
+
+  const [includeAbn, setIncludeAbn] = useState(true)
+  const [includeEmail, setIncludeEmail] = useState(true)
+  const [includePhoneNumber, setIncludePhoneNumber] = useState(true)
+  const [includeAddress, setIncludeAddress] = useState(true)
+
+  async function loadBusinessProfile() {
+    if (!token) return
+
+    try {
+      const response = await fetch(`${url}/v1/admin/user/details`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+
+      const data = await response.json()
+      console.log(data)
+
+      if (!response.ok) return
+
+      setSellerName(data.businessName || "")
+      setSellerAbn(data.abn || "")
+      setSellerEmail(data.email || "")
+      setSellerPhoneNumber(data.phoneNumber || "")
+      setSellerAddress(data.address || "")
+      setIncludeAbn(data.includeAbn ?? true)
+      setIncludeEmail(data.includeEmail ?? true)
+      setIncludePhoneNumber(data.includePhoneNumber ?? true)
+      setIncludeAddress(data.includeAddress ?? true)
+    } catch (error) {
+      console.log(error)
+    }
+  }
 
   useEffect(() => {
-    if (!token) 
+    if (!token) {
       navigate("/")
+      return
+    }
+    loadBusinessProfile()
   }, [token, navigate])
   
   function formatDateInput(value: string) {
@@ -206,6 +246,16 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
       notes,
       buyer: buyerName,
       seller: sellerName,
+      sellerDetails: {
+        abn: sellerAbn,
+        email: sellerEmail,
+        phoneNumber: sellerPhoneNumber,
+        address: sellerAddress,
+        includeAbn,
+        includeEmail,
+        includePhoneNumber,
+        includeAddress
+      },
       invoicePeriod: {
         startDate: toISODate(startDate),
         endDate: toISODate(endDate)
@@ -613,6 +663,12 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
                       <div>
                         <p className="font-semibold">Seller</p>
                         <p>{sellerName || "Seller name"}</p>
+                        {includeAbn && sellerAbn && <p>ABN: {sellerAbn}</p>}
+                        {includeEmail && sellerEmail && <p>{sellerEmail}</p>}
+                        {includePhoneNumber && sellerPhoneNumber && <p>{sellerPhoneNumber}</p>}
+                        {includeAddress && sellerAddress && (
+                          <p className="whitespace-pre-wrap">{sellerAddress}</p>
+                        )}
                       </div>
 
                       <div className="text-right">
