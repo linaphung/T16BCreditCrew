@@ -6,6 +6,7 @@ describe('parseOrderDocument', () => {
       buyer: 'test buyer',
       seller: 'test business',
       paymentTerms: 'payment due within 5 days',
+      notes: 'this is a note',
       orderLines: [{ lineId: '1', itemName: 'cat', quantity: 100, unitPrice: 10 }]
     }))
 
@@ -15,6 +16,7 @@ describe('parseOrderDocument', () => {
       buyerName: 'test buyer',
       sellerName: 'test business',
       paymentTerms: 'payment due within 5 days',
+      notes: 'this is a note',
       issueDate: '',
       dueDate: '',
       currency: 'AUD',
@@ -38,6 +40,7 @@ describe('parseOrderDocument', () => {
           <Name>test business</Name>
         </Seller>
         <PaymentTerms>payment due within 5 days</PaymentTerms>
+        <Notes>this is a note</Notes>
         <InvoicePeriod>
           <StartDate>2026-03-01</StartDate>
           <EndDate>2026-03-10</EndDate>
@@ -57,6 +60,7 @@ describe('parseOrderDocument', () => {
       buyerName: 'test buyer',
       sellerName: 'test business',
       paymentTerms: 'payment due within 5 days',
+      notes: 'this is a note',
       issueDate: '',
       dueDate: '',
       currency: 'AUD',

@@ -189,8 +189,8 @@ export const parseOrderDocument = async (fileBuffer: Buffer) => {
     throw new InvalidFileError('Missing required fields in order document')
 
   return {
-    buyer: buyerName,
-    seller: sellerName,
+    buyerName,
+    sellerName,
     paymentTerms,
     notes,
     issueDate,
