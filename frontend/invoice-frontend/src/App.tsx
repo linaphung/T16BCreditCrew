@@ -10,7 +10,7 @@ import CreateInvoicePage from './pages/CreateInvoicePage'
 import EditInvoicePage from './pages/EditInvoicePage'
 import BusinessProfilePage from './pages/BusinessProfile'
 
-const url="http://localhost:3000"
+const url = import.meta.env.VITE_API_URL
 // const url="https://t16bcreditcrew-86oh.onrender.com"
 function App() {
   const [, setToken] = useState(localStorage.getItem('token'))
