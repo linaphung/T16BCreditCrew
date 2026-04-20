@@ -27,6 +27,7 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
   const [startDateError, setStartDateError] = useState("")
   const [endDateError, setEndDateError] = useState("")
   const [loading, setLoading] = useState(false)
+  const [currency, setCurrency] = useState("AUD")
 
   useEffect(() => {
     if (!token) 
@@ -172,6 +173,10 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
     setEndDateError(getDateError(formatted))
   }
 
+  function formatMoney(amount: number) {
+    return `${currency} ${amount.toFixed(2)}`
+  }
+
   function getTotal() {
     let total = 0
     for (const item of items) {
@@ -196,7 +201,7 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
     return {
       issueDate: new Date().toISOString().slice(0, 10),
       dueDate: toISODate(dueDate),
-      currency: "AUD",
+      currency,
       paymentTerms,
       notes,
       buyer: buyerName,
@@ -443,6 +448,24 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
 
                   <div>
                     <label className="mb-1 block text-sm font-semibold text-gray-700">
+                      Currency
+                    </label>
+                    <select
+                      value={currency}
+                      onChange={(e) => setCurrency(e.target.value)}
+                      className="w-full rounded-md border border-gray-300 bg-white px-4 py-3 text-sm outline-none"
+                    >
+                      <option value="AUD">AUD</option>
+                      <option value="USD">USD</option>
+                      <option value="EUR">EUR</option>
+                      <option value="GBP">GBP</option>
+                      <option value="NZD">NZD</option>
+                      <option value="CAD">CAD</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="mb-1 block text-sm font-semibold text-gray-700">
                       Due Date [DD/MM/YYYY]
                     </label>
                     <input
@@ -678,12 +701,12 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
                                   {item.itemName || `Item ${index + 1}`}
                                 </span>
                                 <span className="text-gray-600">
-                                  ${lineTotal.toFixed(2)}
+                                  {formatMoney(lineTotal)}
                                 </span>
                               </div>
 
                               <div className="mt-1 text-gray-500">
-                                Qty: {item.quantity || 0} × ${item.unitPrice || 0}
+                                Qty: {item.quantity || 0} × {currency} {Number(item.unitPrice || 0).toFixed(2)}
                               </div>
                             </div>
                           )
@@ -694,7 +717,7 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
                     <div className="border-t pt-4 text-right">
                       <p className="text-sm font-semibold text-gray-700">Total</p>
                       <p className="text-2xl font-bold text-[#1560b7]">
-                        ${getTotal()}
+                        {currency} {getTotal()}
                       </p>
                     </div>
                   </div>
