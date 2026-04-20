@@ -32,9 +32,42 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
     if (!token) 
       navigate("/")
   }, [token, navigate])
+  
+  function formatDateInput(value: string) {
+    const digits = value.replace(/\D/g, "").slice(0, 8)
 
-  function validDateFormat(value: string) {
-    return /^\d{2}\/\d{2}\/\d{4}$/.test(value)
+    if (digits.length <= 2) return digits
+    if (digits.length <= 4) return `${digits.slice(0, 2)}/${digits.slice(2)}`
+    return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`
+  }
+
+  function isRealDate(value: string) {
+    const match = value.match(/^(\d{2})\/(\d{2})\/(\d{4})$/)
+    if (!match) return false
+
+    const day = Number(match[1])
+    const month = Number(match[2])
+    const year = Number(match[3])
+
+    const currentYear = new Date().getFullYear()
+
+    if (month < 1 || month > 12) return false
+    if (year < 2000 || year > currentYear + 1) return false
+
+    const testDate = new Date(year, month - 1, day)
+
+    return (
+      testDate.getFullYear() === year &&
+      testDate.getMonth() === month - 1 &&
+      testDate.getDate() === day
+    )
+  }
+
+  function getDateError(value: string) {
+    if (!value) return "Date is required"
+    if (value.length < 10) return "Date must be DD/MM/YYYY"
+    if (!isRealDate(value)) return "Enter a valid date"
+    return ""
   }
 
   function toISODate(date: string) {
@@ -122,27 +155,21 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
   }
 
   function updateDueDate(value: string) {
-    setDueDate(value)
-    if (value === "" || !validDateFormat(value)) 
-      setDueDateError("Date must be DD/MM/YYYY")
-    else 
-      setDueDateError("")
+    const formatted = formatDateInput(value)
+    setDueDate(formatted)
+    setDueDateError(getDateError(formatted))
   }
 
   function updateStartDate(value: string) {
-    setStartDate(value)
-    if (value === "" || !validDateFormat(value)) 
-      setStartDateError("Date must be DD/MM/YYYY")
-    else 
-      setStartDateError("")
+    const formatted = formatDateInput(value)
+    setStartDate(formatted)
+    setStartDateError(getDateError(formatted))
   }
 
   function updateEndDate(value: string) {
-    setEndDate(value)
-    if (value === "" || !validDateFormat(value))
-      setEndDateError("Date must be DD/MM/YYYY")
-    else
-      setEndDateError("")
+    const formatted = formatDateInput(value)
+    setEndDate(formatted)
+    setEndDateError(getDateError(formatted))
   }
 
   function getTotal() {
@@ -181,8 +208,8 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
       orderLines: items.map((item, index) => ({
         lineId: String(index + 1),
         itemName: item.itemName,
-        quantity: Number(item.quantity),
-        unitPrice: Number(item.unitPrice)
+        quantity: item.quantity === "" ? 0 : Number(item.quantity),
+        unitPrice: item.unitPrice === "" ? 0 : Number(item.unitPrice)
       }))
     }
   }
@@ -215,8 +242,8 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
         return
       }
 
-      setBuyerName(typeof data.buyer === "string" ? data.buyer : "")
-      setSellerName(typeof data.seller === "string" ? data.seller : "")
+      setBuyerName(typeof data.buyerName === "string" ? data.buyerName : "")
+      setSellerName(typeof data.sellerName === "string" ? data.sellerName : "")
       setPaymentTerms(typeof data.paymentTerms === "string" ? data.paymentTerms : "")
       setNotes(typeof data.notes === "string" ? data.notes : "")
 
@@ -277,11 +304,6 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
     if (!token)
       return
 
-    if (hasErrors()) {
-      alert("Please fix the input errors first")
-      return
-    }
-
     setLoading(true)
 
     try {
@@ -291,18 +313,23 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify(makeInvoiceBody())
+        body: JSON.stringify({
+          ...makeInvoiceBody(),
+          isDraft: true
+        }),
       })
 
       const data = await response.json()
       console.log(data)
 
-      if (response.ok) 
+      if (response.ok) {
         navigate("/dashboard")
-
-    } catch (error) {
-      console.log(error)
-    }
+      } else {
+        alert(data.message || "Failed to save draft")
+      }
+      } catch (error) {
+        console.log(error)
+      }
 
     setLoading(false)
   }
@@ -324,7 +351,10 @@ export default function CreateInvoicePage({ url, setToken }: CreateInvoicePagePr
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify(makeInvoiceBody())
+        body: JSON.stringify({
+          ...makeInvoiceBody(),
+          isDraft: false
+        })
       })
 
       const createData = await createResponse.json()

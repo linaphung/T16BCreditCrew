@@ -79,7 +79,9 @@ export interface DraftInvoiceInput {
   seller: string,
   currency: string,
   orderLines: OrderLine[],
+  isDraft?: boolean
 }
+
 export interface DraftInvoiceRequest {
   parsedData: ParseOrderContract;
 }

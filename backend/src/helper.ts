@@ -1,9 +1,9 @@
 import validator from 'validator';
-import { InvalidPasswordError, InvalidEmailError, UserNotFound, InvalidTokenError, EmailExistsError } from './errors.js';
+import { InvalidPasswordError, InvalidEmailError, UserNotFound, InvalidTokenError, EmailExistsError, InvoiceBadRequest } from './errors.js';
 import User from '../models/User.js';
 import jwt from 'jsonwebtoken'
 import { Request } from 'express'
-import { InvoiceData, OrderLine } from './types.js';
+import { InvoiceData, OrderLine, DraftInvoiceInput } from './types.js';
 import { create } from 'xmlbuilder2'
 
 /**
@@ -173,4 +173,35 @@ export const isOverdue = (dueDate: string) => {
   startOfToday.setHours(0, 0, 0, 0);
 
   return new Date(dueDate) < startOfToday;
+}
+
+export function validateDraftInput(input: DraftInvoiceInput) {
+  if (!Array.isArray(input.orderLines)) {
+    throw new InvoiceBadRequest('Order lines must be an array')
+  }
+}
+
+export function validateCompleteInput(input: DraftInvoiceInput) {
+  if (!input.buyer?.trim())
+    throw new InvoiceBadRequest('Buyer is required')
+
+  if (!input.seller?.trim())
+    throw new InvoiceBadRequest('Seller is required')
+
+  if (!input.dueDate?.trim())
+    throw new InvoiceBadRequest('Due date is required')
+
+  if (!Array.isArray(input.orderLines) || input.orderLines.length === 0)
+    throw new InvoiceBadRequest('At least one item is required')
+
+  input.orderLines.forEach((line, index) => {
+    if (!line.itemName?.trim())
+      throw new InvoiceBadRequest(`Item ${index + 1} name is required`)
+
+    if (line.quantity <= 0)
+      throw new InvoiceBadRequest(`Item ${index + 1} quantity must be greater than 0`)
+
+    if (line.unitPrice < 0)
+      throw new InvoiceBadRequest(`Item ${index + 1} unit price is invalid`)
+  })
 }

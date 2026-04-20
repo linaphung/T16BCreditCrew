@@ -1,6 +1,6 @@
 import Invoice from '../models/Invoice.js'
 import { GeneratedInvoice, InvoiceData, DraftInvoiceInput, DeleteInvoiceResponse, InvoiceFilters } from './types.js'
-import { calculateLineExtension, generateXMLString, isOverdue } from './helper.js'
+import { calculateLineExtension, generateXMLString, isOverdue, validateDraftInput, validateCompleteInput } from './helper.js'
 import { InvoiceBadRequest, InvoiceNotFoundError, InvalidFileError } from './errors.js'
 import { validateInvoiceHelper } from './invoiceValidation.js'
 import { XMLParser } from 'fast-xml-parser'
@@ -210,25 +210,33 @@ export const generateInvoiceDraft = async (
   input: DraftInvoiceInput,
   userId: string,
 ): Promise<GeneratedInvoice> => {
+
+  if (input.isDraft) {
+    validateDraftInput(input)
+  } else {
+    validateCompleteInput(input)
+  }
+
   const payableAmount = calculateLineExtension(input.orderLines)
 
   const invoiceData: InvoiceData = {
-    issueDate: input.issueDate,
-    dueDate: input.dueDate,
-    paymentTerms: input.paymentTerms,
-    notes: input.notes,
+    issueDate: input.issueDate || '',
+    dueDate: input.dueDate || '',
+    paymentTerms: input.paymentTerms || '',
+    notes: input.notes || '',
     invoicePeriod: input.invoicePeriod ? {
-      startDate: input.invoicePeriod.startDate,
-      endDate: input.invoicePeriod.endDate,
+      startDate: input.invoicePeriod.startDate || '',
+      endDate: input.invoicePeriod.endDate || '',
     } : undefined,
-    buyer: { name: input.buyer },
-    seller: { name: input.seller },
-    lineItems: input.orderLines,
+    buyer: { name: input.buyer || '' },
+    seller: { name: input.seller || '' },
+    lineItems: input.orderLines || [],
     payableAmount: {
-      currency: input.currency,
+      currency: input.currency || 'AUD',
       amount: payableAmount
     }
   }
+
   const invoice = await Invoice.create({
     userId,
     status: 'draft',
