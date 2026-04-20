@@ -13,11 +13,7 @@ import { Label } from "@/components/ui/label"
 import { useState } from "react"
 import { Checkbox } from "@/components/ui/checkbox"
 import axios from "axios"
-
-interface LoginPageProps {
-  url: string
-  setToken: (token: string | null) => void
-}
+import type { LoginPageProps } from "@/types"
 
 export default function LoginPage({url, setToken}: LoginPageProps) {
   const [showPassword, setShowPassword] = useState(false)
