@@ -46,6 +46,33 @@ export default function DashboardPage({ url, setToken }: DashboardProps) {
     }
   }
 
+  function getStatusLabel(invoice: Invoice) {
+    if (invoice.isOverdue) return "Overdue"
+    if (invoice.invoiceStatus === "sent") return "Pending"
+    return invoice.invoiceStatus.charAt(0).toUpperCase() + invoice.invoiceStatus.slice(1)
+  }
+
+  function getStatusClasses(invoice: Invoice) {
+    if (invoice.isOverdue) return "bg-red-100 text-red-700"
+
+    switch (invoice.invoiceStatus) {
+      case "draft":
+        return "bg-red-100 text-red-700"
+      case "finalised":
+        return "bg-green-100 text-green-700"
+      case "sent":
+        return "bg-yellow-100 text-yellow-700"
+      case "paid":
+        return "bg-green-100 text-green-700"
+      case "invalid":
+        return "bg-red-100 text-red-700"
+      case "valid":
+        return "bg-green-100 text-green-700"
+      default:
+        return "bg-gray-100 text-gray-600"
+    }
+  }
+
   function clearFilters() {
     setBuyerFilter("")
     setSellerFilter("")
@@ -82,8 +109,10 @@ export default function DashboardPage({ url, setToken }: DashboardProps) {
         <td className="px-6 py-4 font-medium">{invoice.invoiceData.buyer.name}</td>
         <td className="px-6 py-4 text-gray-700">{invoice.invoiceData.seller.name}</td>
         <td className="px-6 py-4">
-          <span className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600 capitalize">
-            {invoice.invoiceStatus}
+          <span
+            className={`rounded-full px-2.5 py-1 text-xs font-medium ${getStatusClasses(invoice)}`}
+          >
+            {getStatusLabel(invoice)}
           </span>
         </td>
         <td className="px-6 py-4 text-gray-700">{invoice.invoiceData.dueDate || "—"}</td>
@@ -152,11 +181,10 @@ export default function DashboardPage({ url, setToken }: DashboardProps) {
                 >
                   <option value="">All statuses</option>
                   <option value="draft">Draft</option>
-                  <option value="invalid">Invalid</option>
-                  <option value="valid">Valid</option>
                   <option value="finalised">Finalised</option>
-                  <option value="sent">Sent</option>
+                  <option value="sent">Pending</option>
                   <option value="paid">Paid</option>
+                  <option value="overdue">Overdue</option>
                 </select>
 
                 <button
