@@ -45,6 +45,10 @@ export const changeInvoiceCurrency = async (invoiceId: string, userId: string, t
 
   await invoice.save()
 
-  return {invoiceId: invoice._id.toString(), invoiceData: invoiceData, invoiceStatus: invoice.status}
+  return {
+    invoiceId: invoice._id.toString(),
+    invoiceData: invoice.invoiceData as InvoiceData,
+    invoiceStatus: invoice.status
+  }
 }
 

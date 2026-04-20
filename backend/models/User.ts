@@ -22,6 +22,30 @@ const userSchema = new mongoose.Schema({
   tokens: {
     type: [String],
     default: []
+  },
+  phoneNumber: {
+    type: String,
+    default: ''
+  },
+  address: {
+    type: String,
+    default: ''
+  },
+  includeAbn: {
+    type: Boolean,
+    default: true
+  },
+  includeEmail: {
+    type: Boolean,
+    default: true
+  },
+  includePhoneNumber: {
+    type: Boolean,
+    default: true
+  },
+  includeAddress: {
+    type: Boolean,
+    default: true
   }
 }, {timestamps: true})
 // timestamps keeps track of when it was created or updated

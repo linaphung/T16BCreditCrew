@@ -108,9 +108,33 @@ app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument as object))
 app.put('/v1/admin/user/details', authenticate, async (req: Request, res: Response) => {
   try {
     const token = extractBearerToken(req)!
-    const { email, businessName, password } = req.body
-    const result = await adminUserDetailsUpdate(token, { email, businessName, password })
-    return res.status(200).json(result)
+    const {
+      email,
+      businessName,
+      password,
+      abn,
+      phoneNumber,
+      address,
+      includeAbn,
+      includeEmail,
+      includePhoneNumber,
+      includeAddress
+    } = req.body
+
+    await adminUserDetailsUpdate(token, {
+      email,
+      businessName,
+      password,
+      abn,
+      phoneNumber,
+      address,
+      includeAbn,
+      includeEmail,
+      includePhoneNumber,
+      includeAddress
+    })
+    
+    return res.status(200).json({})
   } catch (error) {
     const err = error as Error
     return res.status(400).json({
@@ -130,7 +154,6 @@ app.get('/v1/admin/user/details', authenticate, async (req: Request, res: Respon
         message: 'Token is invalid'
       })
     }
-
     const result = await adminUserDetails(token)
     return res.status(200).json(result)
   } catch (error) {
