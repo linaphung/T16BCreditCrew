@@ -8,7 +8,7 @@ import {
   SidebarMenu,
   SidebarMenuButton
 } from "@/components/ui/sidebar"
-import { LayoutDashboard, FilePlus, Upload, LogOut, Building2 } from "lucide-react"
+import { LayoutDashboard, FilePlus, LogOut, Building2 } from "lucide-react"
 import { useNavigate, useLocation } from "react-router-dom"
 
 interface AppSideBarProps {

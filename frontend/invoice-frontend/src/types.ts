@@ -84,6 +84,7 @@ export type InvoiceData = {
     currency: string
     amount: number
   }
+  notes: string
 }
 
 export type InvoiceResponse = {
