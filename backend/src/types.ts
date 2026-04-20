@@ -137,7 +137,9 @@ export interface InvoiceData {
   payableAmount: {
     currency: string,
     amount: number
-  }
+  },
+  originalCurrency?: string,
+  originalLineItems?: OrderLine[]
 }
 
 export interface InvoiceFilters {

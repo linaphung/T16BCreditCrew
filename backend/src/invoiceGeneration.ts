@@ -217,7 +217,15 @@ export const generateInvoiceDraft = async (
     validateCompleteInput(input)
   }
 
-  const payableAmount = calculateLineExtension(input.orderLines)
+  const baseLineItems = (input.orderLines || []).map(item => ({
+    lineId: item.lineId,
+    itemName: item.itemName,
+    quantity: item.quantity,
+    unitPrice: item.unitPrice
+  }))
+
+  const baseCurrency = input.currency || 'AUD'
+  const payableAmount = calculateLineExtension(baseLineItems)
 
   const invoiceData: InvoiceData = {
     issueDate: input.issueDate || '',
@@ -230,9 +238,11 @@ export const generateInvoiceDraft = async (
     } : undefined,
     buyer: { name: input.buyer || '' },
     seller: { name: input.seller || '' },
-    lineItems: input.orderLines || [],
+    lineItems: baseLineItems,
+    originalLineItems: baseLineItems,
+    originalCurrency: baseCurrency,
     payableAmount: {
-      currency: input.currency || 'AUD',
+      currency: baseCurrency,
       amount: payableAmount
     }
   }
@@ -402,7 +412,22 @@ export const updateInvoice = async (
   if (!invoice)
     throw new InvoiceNotFoundError('Invoice not found')
 
-  invoice.invoiceData = Object.assign({}, invoice.invoiceData, updatedFields)
+  const current = invoice.invoiceData as InvoiceData
+
+  const originalLineItems = (current.originalLineItems ?? current.lineItems).map(item => ({
+    lineId: item.lineId,
+    itemName: item.itemName,
+    quantity: item.quantity,
+    unitPrice: item.unitPrice
+  }))
+
+  invoice.set('invoiceData.originalCurrency', current.originalCurrency ?? current.payableAmount.currency)
+  invoice.set('invoiceData.originalLineItems', originalLineItems)
+
+  Object.entries(updatedFields).forEach(([key, value]) => {
+    invoice.set(`invoiceData.${key}`, value)
+  })
+
   await invoice.save()
 
   return {

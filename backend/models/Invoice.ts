@@ -1,6 +1,5 @@
 import mongoose from 'mongoose'
 
-
 const lineItemSchema = new mongoose.Schema({
   lineId: {
     type: String,
@@ -18,52 +17,46 @@ const lineItemSchema = new mongoose.Schema({
     type: Number,
     required: true
   }
-})
+}, { _id: false })
 
 const invoiceDataSchema = new mongoose.Schema({
   issueDate: String,
-
   dueDate: String,
-
   paymentTerms: String,
-
+  notes: String,
   invoicePeriod: {
     startDate: String,
     endDate: String
   },
-
   buyer: {
     name: String
   },
-
   seller: {
-    name: String,
-    abn: String
+    name: String
   },
-
   lineItems: [lineItemSchema],
-
+  originalCurrency: String,
+  originalLineItems: [lineItemSchema],
   payableAmount: {
     currency: String,
     amount: Number
   }
-})
+}, { _id: false })
 
-// this is how we define data we will insert into the database
 const invoiceSchema = new mongoose.Schema({
-  userId : {
+  userId: {
     type: String,
     required: true
   },
 
-  status : {
+  status: {
     type: String,
     enum: ['draft', 'invalid', 'finalised', 'paid'],
     default: 'draft'
   },
 
   invoiceData: invoiceDataSchema,
-  
+
   invoiceXMLString: {
     type: String
   },
@@ -72,9 +65,6 @@ const invoiceSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   }
-
-  // add something that keeps track of user session/token
-}, {timestamps: true})
-// timestamps keeps track of when it was created or updated
+}, { timestamps: true })
 
 export default mongoose.model('Invoice', invoiceSchema)

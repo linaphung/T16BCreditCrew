@@ -6,10 +6,8 @@ export default function EditInvoicePage({ url }: EditInvoicePageProps) {
   const { invoiceId } = useParams()
   const navigate = useNavigate()
   const token = localStorage.getItem("token")
-
   const [loading, setLoading] = useState(true)
   const [invoice, setInvoice] = useState<InvoiceResponse | null>(null)
-
   const [buyerName, setBuyerName] = useState("")
   const [sellerName, setSellerName] = useState("")
   const [dueDate, setDueDate] = useState("")
@@ -22,12 +20,10 @@ export default function EditInvoicePage({ url }: EditInvoicePageProps) {
   const [endDateError, setEndDateError] = useState("")
   const [notes, setNotes] = useState("")
   const [currency, setCurrency] = useState("AUD")
-
   const [sellerAbn, setSellerAbn] = useState("")
   const [sellerEmail, setSellerEmail] = useState("")
   const [sellerPhoneNumber, setSellerPhoneNumber] = useState("")
   const [sellerAddress, setSellerAddress] = useState("")
-
   const [includeAbn, setIncludeAbn] = useState(true)
   const [includeEmail, setIncludeEmail] = useState(true)
   const [includePhoneNumber, setIncludePhoneNumber] = useState(true)
@@ -147,42 +143,57 @@ export default function EditInvoicePage({ url }: EditInvoicePageProps) {
     return `${currency} ${amount.toFixed(2)}`
   }
 
-  async function handleCurrencyChange(newCurrency: string) {
-    if (!token || !invoiceId) return
-    if (newCurrency === currency) return
+async function handleCurrencyChange(newCurrency: string) {
+  if (!token || !invoiceId) return
+  if (newCurrency === currency) return
 
-    try {
-      const res = await fetch(`${url}/v1/invoices/convert-currency/${invoiceId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ to: newCurrency })
-      })
+  try {
+    const res = await fetch(`${url}/v1/invoices/convert-currency/${invoiceId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ to: newCurrency })
+    })
 
-      const data = await res.json()
-      console.log(data)
+    const data = await res.json()
+    console.log(data)
 
-      if (!res.ok) {
-        alert(data.message || "Failed to convert currency")
-        return
-      }
-
-      setCurrency(data.invoiceData.payableAmount.currency || newCurrency)
-      setItems(
-        data.invoiceData.lineItems.map((item: InvoiceLine) => ({
-          lineId: item.lineId,
-          itemName: item.itemName,
-          quantity: String(item.quantity),
-          unitPrice: String(item.unitPrice)
-        }))
-      )
-      setInvoice(data)
-    } catch (error) {
-      console.log(error)
+    if (!res.ok) {
+      alert(data.message || "Failed to convert currency")
+      return
     }
+
+    setInvoice(data)
+    setCurrency(data.invoiceData.payableAmount.currency || newCurrency)
+    setBuyerName(data.invoiceData.buyer.name || "")
+    setSellerName(data.invoiceData.seller.name || "")
+    setDueDate(data.invoiceData.dueDate ? fromISODate(data.invoiceData.dueDate) : "")
+    setStartDate(
+      data.invoiceData.invoicePeriod?.startDate
+        ? fromISODate(data.invoiceData.invoicePeriod.startDate)
+        : ""
+    )
+    setEndDate(
+      data.invoiceData.invoicePeriod?.endDate
+        ? fromISODate(data.invoiceData.invoicePeriod.endDate)
+        : ""
+    )
+    setPaymentTerms(data.invoiceData.paymentTerms || "")
+    setNotes(data.invoiceData.notes || "")
+    setItems(
+      data.invoiceData.lineItems.map((item: InvoiceLine) => ({
+        lineId: item.lineId,
+        itemName: item.itemName,
+        quantity: String(item.quantity),
+        unitPrice: String(item.unitPrice)
+      }))
+    )
+  } catch (error) {
+    console.log(error)
   }
+}
 
   async function getInvoice() {
     if (!token || !invoiceId) 
