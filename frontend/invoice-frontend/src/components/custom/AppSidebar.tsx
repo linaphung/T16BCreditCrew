@@ -22,7 +22,6 @@ export function AppSidebar({setToken}: AppSideBarProps) {
     {label: "Dashboard", icon: <LayoutDashboard></LayoutDashboard>, navigateTo: '/dashboard'},
     {label: "Business Profile", icon: <Building2 />, navigateTo: "/dashboard/business-profile"},
     {label: "Create Invoice", icon: <FilePlus></FilePlus> ,navigateTo: '/dashboard/create'},
-    {label: "Upload Order", icon: <Upload></Upload>, navigateTo: '/dashboard/upload-order'},
   ]
   const location = useLocation()
 
