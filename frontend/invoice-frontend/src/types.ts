@@ -99,7 +99,7 @@ export type InvoiceData = {
 
 export type InvoiceResponse = {
   invoiceId: string
-  invoiceStatus: "draft" | "finalised" | "sent" | "paid" | "invalid"
+  invoiceStatus: "draft" | "finalised" | "pending" | "paid" | "invalid"
   invoiceData: InvoiceData
   invoiceXML: string
   isOverdue: boolean

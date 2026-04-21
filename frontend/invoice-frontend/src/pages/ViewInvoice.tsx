@@ -12,13 +12,49 @@ export default function ViewInvoice({ url, setToken }: ViewInvoiceProps) {
   const [invoice, setInvoice] = useState<InvoiceResponse | null>(null)
   const [loading, setLoading] = useState(true)
 
+  const [sellerAbn, setSellerAbn] = useState("")
+  const [sellerEmail, setSellerEmail] = useState("")
+  const [sellerPhoneNumber, setSellerPhoneNumber] = useState("")
+  const [sellerAddress, setSellerAddress] = useState("")
+  const [includeAbn, setIncludeAbn] = useState(true)
+  const [includeEmail, setIncludeEmail] = useState(true)
+  const [includePhoneNumber, setIncludePhoneNumber] = useState(true)
+  const [includeAddress, setIncludeAddress] = useState(true)
+
   useEffect(() => {
     if (!token) {
       navigate("/")
       return
     }
     getInvoice()
+    loadBusinessProfile()
   }, [token, navigate, invoiceId])
+
+  async function loadBusinessProfile() {
+    if (!token) return
+
+    try {
+      const response = await fetch(`${url}/v1/admin/user/details`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+
+      const data = await response.json()
+      if (!response.ok) return
+
+      setSellerAbn(data.abn || "")
+      setSellerEmail(data.email || "")
+      setSellerPhoneNumber(data.phoneNumber || "")
+      setSellerAddress(data.address || "")
+      setIncludeAbn(data.includeAbn ?? true)
+      setIncludeEmail(data.includeEmail ?? true)
+      setIncludePhoneNumber(data.includePhoneNumber ?? true)
+      setIncludeAddress(data.includeAddress ?? true)
+    } catch (err) {
+      console.log(err)
+    }
+  }
 
   async function getInvoice() {
     if (!token || !invoiceId) return
@@ -46,6 +82,7 @@ export default function ViewInvoice({ url, setToken }: ViewInvoiceProps) {
       console.log(err)
       setInvoice(null)
     }
+
     setLoading(false)
   }
 
@@ -60,6 +97,7 @@ export default function ViewInvoice({ url, setToken }: ViewInvoiceProps) {
     if (status === "draft") return "bg-[#ecd2f1] text-[#8b57a0]"
     if (status === "finalised") return "bg-[#d9ebf8] text-[#4c86cb]"
     if (status === "sent") return "bg-[#eef2a9] text-[#7f8600]"
+    if (status === "pending") return "bg-[#eef2a9] text-[#7f8600]"
     if (status === "paid") return "bg-[#d5e9c3] text-[#5a8838]"
     if (status === "invalid") return "bg-[#f6d7dc] text-[#d15f69]"
     return "bg-gray-200 text-gray-700"
@@ -204,11 +242,11 @@ export default function ViewInvoice({ url, setToken }: ViewInvoiceProps) {
   const canSend = invoice.invoiceStatus === "finalised"
   const canExport =
     invoice.invoiceStatus === "finalised" ||
-    invoice.invoiceStatus === "sent" ||
+    invoice.invoiceStatus === "pending" ||
     invoice.invoiceStatus === "paid"
   const canMarkPaid =
     invoice.invoiceStatus === "finalised" ||
-    invoice.invoiceStatus === "sent"
+    invoice.invoiceStatus === "pending"
 
   return (
     <SidebarProvider>
@@ -292,7 +330,8 @@ export default function ViewInvoice({ url, setToken }: ViewInvoiceProps) {
                       Total Amount
                     </p>
                     <p className="text-gray-800">
-                      ${Number(invoice.invoiceData.payableAmount.amount).toFixed(2)}
+                      {invoice.invoiceData.payableAmount.currency}{" "}
+                      {Number(invoice.invoiceData.payableAmount.amount).toFixed(2)}
                     </p>
                   </div>
                 </div>
@@ -305,6 +344,20 @@ export default function ViewInvoice({ url, setToken }: ViewInvoiceProps) {
                     <p className="text-gray-800">
                       {invoice.invoiceData.seller.name}
                     </p>
+                    {includeAbn && sellerAbn && (
+                      <p className="mt-1 text-sm text-gray-700">ABN: {sellerAbn}</p>
+                    )}
+                    {includeEmail && sellerEmail && (
+                      <p className="mt-1 text-sm text-gray-700">{sellerEmail}</p>
+                    )}
+                    {includePhoneNumber && sellerPhoneNumber && (
+                      <p className="mt-1 text-sm text-gray-700">{sellerPhoneNumber}</p>
+                    )}
+                    {includeAddress && sellerAddress && (
+                      <p className="mt-1 whitespace-pre-wrap text-sm text-gray-700">
+                        {sellerAddress}
+                      </p>
+                    )}
                   </div>
 
                   <div>
@@ -340,8 +393,14 @@ export default function ViewInvoice({ url, setToken }: ViewInvoiceProps) {
                     >
                       <p>{item.itemName}</p>
                       <p>{item.quantity}</p>
-                      <p>${Number(item.unitPrice).toFixed(2)}</p>
-                      <p>${(item.quantity * item.unitPrice).toFixed(2)}</p>
+                      <p>
+                        {invoice.invoiceData.payableAmount.currency}{" "}
+                        {Number(item.unitPrice).toFixed(2)}
+                      </p>
+                      <p>
+                        {invoice.invoiceData.payableAmount.currency}{" "}
+                        {(item.quantity * item.unitPrice).toFixed(2)}
+                      </p>
                     </div>
                   ))}
                 </div>
@@ -351,16 +410,26 @@ export default function ViewInvoice({ url, setToken }: ViewInvoiceProps) {
                     Total Due
                   </p>
                   <p className="text-3xl font-bold text-black">
-                    ${Number(invoice.invoiceData.payableAmount.amount).toFixed(2)}
+                    {invoice.invoiceData.payableAmount.currency}{" "}
+                    {Number(invoice.invoiceData.payableAmount.amount).toFixed(2)}
                   </p>
                 </div>
 
-                <div className="rounded-[24px] bg-[#edf4fb] px-6 py-5">
+                <div className="mb-6 rounded-[24px] bg-[#edf4fb] px-6 py-5">
                   <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[#4c86cb]">
                     Payment Terms
                   </p>
                   <p className="text-gray-800">
                     {invoice.invoiceData.paymentTerms || "-"}
+                  </p>
+                </div>
+
+                <div className="rounded-[24px] bg-[#edf4fb] px-6 py-5">
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[#4c86cb]">
+                    Notes
+                  </p>
+                  <p className="text-gray-800">
+                    {invoice.invoiceData.notes || "-"}
                   </p>
                 </div>
               </div>
