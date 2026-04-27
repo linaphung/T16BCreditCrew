@@ -136,14 +136,53 @@ export default function ViewInvoice({ url, setToken }: ViewInvoiceProps) {
     }
   }
 
-  function handleExportXML() {
-    if (!invoiceId) return
-    window.open(`${url}/v1/admin/invoice/${invoiceId}/xml`, "_blank")
+  async function handleExportXML() {
+    if (!token || !invoiceId) return
+
+    try {
+      const res = await fetch(`${url}/v1/admin/invoice/${invoiceId}/xml`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+
+      if (!res.ok) {
+        const data = await res.json()
+        console.log(data)
+        return
+      }
+
+      const xmlText = await res.text()
+      const blob = new Blob([xmlText], { type: "application/xml" })
+      const fileURL = window.URL.createObjectURL(blob)
+      window.open(fileURL, "_blank")
+    } catch (err) {
+      console.log(err)
+    }
   }
 
-  function handleExportPDF() {
-    if (!invoiceId) return
-    window.open(`${url}/v1/admin/invoice/${invoiceId}/pdf`, "_blank")
+  async function handleExportPDF() {
+    if (!token || !invoiceId) return
+  
+    try {
+      const res = await fetch(`${url}/v1/admin/invoice/${invoiceId}/pdf`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+  
+      if (!res.ok) {
+        const data = await res.json()
+        console.log(data)
+        return
+      }
+  
+      const blob = await res.blob()
+      const fileURL = window.URL.createObjectURL(blob)
+      window.open(fileURL, "_blank")
+    } catch (err) {
+      console.log(err)
+    }
   }
 
   function handleEdit() {
@@ -204,11 +243,11 @@ export default function ViewInvoice({ url, setToken }: ViewInvoiceProps) {
   const canSend = invoice.invoiceStatus === "finalised"
   const canExport =
     invoice.invoiceStatus === "finalised" ||
-    invoice.invoiceStatus === "sent" ||
+    invoice.invoiceStatus === "pending" ||
     invoice.invoiceStatus === "paid"
   const canMarkPaid =
     invoice.invoiceStatus === "finalised" ||
-    invoice.invoiceStatus === "sent"
+    invoice.invoiceStatus === "pending"
 
   return (
     <SidebarProvider>
